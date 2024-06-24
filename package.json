@@ -1,9 +1,9 @@
 {
-  "name": "with-sidepanel",
-  "displayName": "With sidepanel",
+  "name": "data-explorer",
+  "displayName": "Data Explorer",
   "version": "0.0.1",
-  "description": "Using side-panel API in an extension",
-  "author": "Plasmo Corp. <foss@plasmo.com>",
+  "description": "Explore data from Hugging Face datasets in your browser",
+  "author": "Caleb Fahlgren <cfahlgren1@gmail.com>",
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
