@@ -4,6 +4,18 @@ A Chrome Extension for exploring and query Hugging Face datasets with SQL.
 
 ## Getting Started
 
+#### Installing
+
+1. Download the latest release from the [Releases page](https://github.com/cfahlgren1/hf-data-explorer/releases).
+2. Unzip the downloaded file.
+3. Open Google Chrome and navigate to `chrome://extensions/`.
+4. Enable "Developer mode" by toggling the switch in the top right corner.
+5. Click on "Load unpacked" button.
+6. Select the unzipped folder containing the extension files.
+7. The HF Data Explorer extension should now be installed and visible in your Chrome toolbar.
+
+## Contributing
+
 This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
 
 First, run the development server:
@@ -31,3 +43,5 @@ npm run build
 ```
 
 This should create a production bundle for your extension, ready to be zipped and published to the stores.
+
+
