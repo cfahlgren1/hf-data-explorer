@@ -13,10 +13,10 @@ const IndexPopup = () => {
 
   useEffect(() => {
     const handleTabChange = () => {
-      getCurrentTabUrl()
+      getCurrentTabInfo()
     }
 
-    getCurrentTabUrl()
+    getCurrentTabInfo()
 
     chrome.tabs.onUpdated.addListener(handleTabChange)
     chrome.tabs.onActivated.addListener(handleTabChange)
@@ -27,25 +27,33 @@ const IndexPopup = () => {
     }
   }, [])
 
-  const getCurrentTabUrl = async () => {
+  const getCurrentTabInfo = async () => {
     if (chrome.tabs && chrome.tabs.query) {
       chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-        if (tabs[0] && tabs[0].url) {
+        if (tabs[0] && tabs[0].url && tabs[0].id) {
           setCurrentUrl(tabs[0].url)
         }
       })
     }
   }
 
-  const openSidebar = async () => {
+  const toggleSidebar = async () => {
     if (userIsOnDatasetPage) {
       try {
-        await chrome.sidePanel.open({ tabId: await getCurrentTabId() })
+        const tabId = await getCurrentTabId()
+        chrome.runtime.sendMessage({ action: "toggleSidebar", tabId }, async (response) => {
+          if (response.success) {
+            if (response.enabled) {
+              await chrome.sidePanel.open({ tabId })
+            }
+            window.close()
+          } else {
+            console.error("Error toggling sidebar:", response.error)
+          }
+        })
       } catch (error) {
-        console.error("Error toggling sidebar:", error)
+        console.error("Error getting current tab ID:", error)
       }
-      // close popup
-      window.close()
     }
   }
 
@@ -72,7 +80,7 @@ const IndexPopup = () => {
               Open a dataset to get started.
             </p>
           ) : (
-            <Button variant="outline" onClick={openSidebar}>
+            <Button variant="outline" onClick={toggleSidebar}>
               Open Data Explorer
             </Button>
           )
