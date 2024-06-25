@@ -1,13 +1,19 @@
-name: Node.js CI and Release
+name: Node.js CI and Manual Release
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release'
+        required: true
+        type: string
 
 jobs:
-  build_and_release:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,16 +27,25 @@ jobs:
       - run: pnpm install
       - run: pnpm build
       - run: zip -r build.zip build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: build.zip
 
-      - id: package-version
-        uses: martinbeentjes/npm-get-version-action@v1.3.1
-
+  release:
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v3
+        with:
+          name: build
       - name: Create Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create v${{ steps.package-version.outputs.current-version }} \
-            --title "Release v${{ steps.package-version.outputs.current-version }}" \
-            --notes "Release notes for version ${{ steps.package-version.outputs.current-version }}" \
+          gh release create v${{ github.event.inputs.version }} \
+            --title "Release v${{ github.event.inputs.version }}" \
+            --notes "Release notes for version ${{ github.event.inputs.version }}" \
             build.zip
