@@ -3,9 +3,7 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 
 export const useDuckDB = () => {
     const [db, setDb] = useState<duckdb.AsyncDuckDB | null>(null);
-    const [connection, setConnection] = useState<duckdb.AsyncDuckDBConnection | null>(null);
     const [loading, setLoading] = useState(true);
-    const [queryResult, setQueryResult] = useState<any[] | null>(null);
     const [isQueryRunning, setIsQueryRunning] = useState(false);
 
     useEffect(() => {
@@ -26,9 +24,7 @@ export const useDuckDB = () => {
                 await newDb.instantiate(bundle.mainModule, bundle.pthreadWorker);
                 URL.revokeObjectURL(worker_url);
 
-                const newConnection = await newDb.connect();
                 setDb(newDb);
-                setConnection(newConnection);
                 setLoading(false);
             } catch (error) {
                 console.error("Error initializing DuckDB:", error);
@@ -39,39 +35,36 @@ export const useDuckDB = () => {
         initializeDuckDB();
 
         return () => {
-            if (connection) {
-                connection.close();
-            }
             if (db) {
                 db.terminate();
             }
         };
     }, []);
 
-    const executeQuery = async (sql: string) => {
-        if (!connection) {
-            console.error("Database not initialized");
-            return;
-        }
+    const executeSQL = async (query: string, limit: number = 100000, params?: any[]) => {
+        if (!db) throw new Error("Database not initialized");
+
         setIsQueryRunning(true);
+        const connection = await db.connect();
+
         try {
-            const result = await connection.query(sql);
-            const resultData = result.toArray().map((row) => row.toJSON());
-            console.log(resultData);
-            setQueryResult(resultData);
-            return resultData;
-        } catch (error) {
-            console.error('Error executing query:', error);
-            setQueryResult([{ error: error.message }]);
+            const resultSet = params?.length
+                ? await (await connection.prepare(query)).send(...params)
+                : await connection.send(query);
+
+            const rows = [];
+
+            // read batches until we get to the limit or the end of the result set
+            for await (const batch of resultSet) {
+                rows.push(...batch.toArray());
+                if (rows.length >= limit) break;
+            }
+
+            return { rows: rows.slice(0, limit) };
         } finally {
+            await connection.close();
             setIsQueryRunning(false);
         }
     };
-
-    const cancelQuery = async (): Promise<boolean> => {
-        if (!connection) return false;
-        return await connection.cancelSent();
-    };
-
-    return { loading, executeQuery, queryResult, isQueryRunning, cancelQuery };
+    return { loading, executeSQL, isQueryRunning };
 };

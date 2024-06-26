@@ -1,11 +1,27 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useDuckDB } from "@/hooks/useDuckDB";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const Content = () => {
     const [query, setQuery] = useState<string>("");
-    const { loading, executeQuery, queryResult, isQueryRunning, cancelQuery } = useDuckDB();
+    const [results, setResults] = useState<any[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    const { executeSQL, isQueryRunning, loading } = useDuckDB();
+
+    const MAX_ROWS = 500;
+
+    const runQuery = async () => {
+        setResults([]);
+        setError(null);
+        try {
+            const { rows } = await executeSQL(query, MAX_ROWS);
+            setResults(rows);
+        } catch (err) {
+            setError(err.message);
+        }
+    };
 
     if (loading) {
         return <p>Loading...</p>;
@@ -22,20 +38,20 @@ const Content = () => {
                         placeholder="Enter your SQL query"
                         className="w-full"
                     />
-                    <Button onClick={() => executeQuery(query)} className="w-full">
+                    <Button onClick={runQuery} className="w-full">
                         {isQueryRunning ? "Running..." : "Run Query"}
                     </Button>
-                    {isQueryRunning && (
-                        <Button onClick={cancelQuery} className="w-full">
-                            Cancel Query
-                        </Button>
-                    )}
                     <div className="mt-4">
                         <h2 className="text-xl font-semibold mb-2">Query Result:</h2>
-                        {queryResult ? (
-                            <pre className="bg-gray-100 p-2 rounded overflow-auto max-h-60">
-                                {JSON.stringify(queryResult, null, 2)}
-                            </pre>
+                        {error ? (
+                            <p className="text-red-500">{error}</p>
+                        ) : results.length > 0 ? (
+                            <div>
+                                <pre className="bg-gray-100 p-2 rounded overflow-auto max-h-60">
+                                    Returned {results.length} rows
+                                    {results.length === MAX_ROWS && " (maximum reached)"}
+                                </pre>
+                            </div>
                         ) : (
                             <p>No results yet</p>
                         )}
