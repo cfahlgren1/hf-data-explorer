@@ -53,7 +53,7 @@ const Explorer = () => {
   if (loading) return
 
   return (
-    <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-80 rounded-lg shadow-lg z-50">
+    <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-96 rounded-lg shadow-lg z-50">
       <div className="p-4">
         <h1 className="text-xl font-bold text-slate-800 mb-1">Data Explorer</h1>
         <p className="text-xs text-slate-600 mb-3">
@@ -63,7 +63,7 @@ const Explorer = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Enter your SQL query here..."
-          className="w-full p-2 text-sm border border-slate-300 rounded resize-none h-24 mb-3"
+          className="w-full p-2 text-sm min-h-[120px] border border-slate-300 rounded resize-none h-24 mb-3"
         />
         <Button onClick={runQuery} className="w-full">
           {isQueryRunning ? "Running..." : "Run Query"}
@@ -72,7 +72,7 @@ const Explorer = () => {
         {results.length > 0 && (
           <p className="text-xs text-center text-gray-600 mt-2">
             Returned {results.length} rows
-            {results.length === MAX_ROWS && " (maximum reached)"}
+            {results.length === MAX_ROWS && " (truncated)"}
           </p>
         )}
       </div>
