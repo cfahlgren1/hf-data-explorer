@@ -1,4 +1,6 @@
+import { getDuckDBColumnType } from "@/utils/databaseUtils"
 import * as duckdb from "@duckdb/duckdb-wasm"
+import { ColDef } from "ag-grid-community"
 import { useCallback, useEffect, useState } from "react"
 
 export const useDuckDB = () => {
@@ -58,14 +60,25 @@ export const useDuckDB = () => {
                     : await connection.send(query)
 
                 const rows: Record<string, any>[] = []
+                let columns: ColDef[] = []
 
                 // read batches until we get to the limit or the end of the result set
                 for await (const batch of resultSet) {
+                    if (columns.length === 0 && batch.schema) {
+                        columns = batch.schema.fields.map((field) => ({
+                            field: field.name,
+                            headerName: field.name,
+                            type: getDuckDBColumnType(
+                                String(field.type).toLowerCase()
+                            )
+                        }))
+                    }
+
                     rows.push(...batch.toArray().map((row) => row.toJSON()))
                     if (rows.length >= limit) break
                 }
 
-                return { rows: rows }
+                return { rows, columns }
             } finally {
                 await connection.close()
                 setCurrentConnection(null)
