@@ -1,7 +1,7 @@
 {
   "name": "data-explorer",
   "displayName": "Data Explorer",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Explore data from Hugging Face datasets in your browser",
   "author": "Caleb Fahlgren <cfahlgren1@gmail.com>",
   "scripts": {
