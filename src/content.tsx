@@ -2,6 +2,18 @@ import React, { useState } from "react";
 import { useDuckDB } from "@/hooks/useDuckDB";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import type { PlasmoCSConfig } from "plasmo"
+import cssText from "data-text:~/styles.css"
+
+export const config: PlasmoCSConfig = {
+    matches: ["https://huggingface.co/datasets/*/*"],
+}
+
+export const getStyle = () => {
+    const style = document.createElement("style")
+    style.textContent = cssText
+    return style
+}
 
 const Content = () => {
     const [query, setQuery] = useState<string>("");
@@ -13,6 +25,10 @@ const Content = () => {
     const MAX_ROWS = 500;
 
     const runQuery = async () => {
+        if (query.trim() === "") {
+            return;
+        }
+
         setResults([]);
         setError(null);
         try {
@@ -28,8 +44,8 @@ const Content = () => {
     }
 
     return (
-        <div className="flex h-screen">
-            <div className="w-1/4 p-4 bg-white shadow-lg rounded-lg">
+        <div className="flex h-screen w-full max-w-5xl">
+            <div className="p-4 bg-white shadow-lg rounded-lg">
                 <h1 className="text-3xl font-bold text-gray-800 mb-4">HF Data Explorer</h1>
                 <div className="space-y-4">
                     <Input
