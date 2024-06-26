@@ -57,15 +57,15 @@ export const useDuckDB = () => {
                     ? await (await connection.prepare(query)).send(...params)
                     : await connection.send(query)
 
-                const rows = []
+                const rows: Record<string, any>[] = []
 
                 // read batches until we get to the limit or the end of the result set
                 for await (const batch of resultSet) {
-                    rows.push(...batch.toArray())
+                    rows.push(...batch.toArray().map((row) => row.toJSON()))
                     if (rows.length >= limit) break
                 }
 
-                return { rows: rows.slice(0, limit) }
+                return { rows: rows }
             } finally {
                 await connection.close()
                 setCurrentConnection(null)
