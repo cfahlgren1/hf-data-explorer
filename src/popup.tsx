@@ -41,16 +41,19 @@ const IndexPopup = () => {
     if (userIsOnDatasetPage) {
       try {
         const tabId = await getCurrentTabId()
-        chrome.runtime.sendMessage({ action: "toggleSidebar", tabId }, async (response) => {
-          if (response.success) {
-            if (response.enabled) {
-              await chrome.sidePanel.open({ tabId })
+        chrome.runtime.sendMessage(
+          { action: "toggleSidebar", tabId },
+          async (response) => {
+            if (response.success) {
+              if (response.enabled) {
+                await chrome.sidePanel.open({ tabId })
+              }
+              window.close()
+            } else {
+              console.error("Error toggling sidebar:", response.error)
             }
-            window.close()
-          } else {
-            console.error("Error toggling sidebar:", response.error)
           }
-        })
+        )
       } catch (error) {
         console.error("Error getting current tab ID:", error)
       }

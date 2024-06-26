@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { useDuckDB } from "@/hooks/useDuckDB";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import type { PlasmoCSConfig } from "plasmo"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { useDuckDB } from "@/hooks/useDuckDB"
 import cssText from "data-text:~/styles.css"
-
+import type { PlasmoCSConfig } from "plasmo"
+import React, { useState } from "react"
+import "./styles.css"
 export const config: PlasmoCSConfig = {
-    matches: ["https://huggingface.co/datasets/*/*"],
+    matches: ["https://huggingface.co/datasets/*/*"]
 }
 
 export const getStyle = () => {
@@ -16,66 +16,57 @@ export const getStyle = () => {
 }
 
 const Content = () => {
-    const [query, setQuery] = useState<string>("");
-    const [results, setResults] = useState<any[]>([]);
-    const [error, setError] = useState<string | null>(null);
+    const [query, setQuery] = useState<string>("")
+    const [results, setResults] = useState<any[]>([])
+    const [error, setError] = useState<string | null>(null)
 
-    const { executeSQL, isQueryRunning, loading } = useDuckDB();
+    const { executeSQL, isQueryRunning, loading } = useDuckDB()
 
-    const MAX_ROWS = 500;
+    const MAX_ROWS = 500
 
     const runQuery = async () => {
-        if (query.trim() === "") {
-            return;
-        }
-
-        setResults([]);
-        setError(null);
+        // if query is empty or already running ignore
+        if (query.trim() === "" || isQueryRunning) return
+        setResults([])
+        setError(null)
         try {
-            const { rows } = await executeSQL(query, MAX_ROWS);
-            setResults(rows);
+            const { rows } = await executeSQL(query, MAX_ROWS)
+            setResults(rows)
         } catch (err) {
-            setError(err.message);
+            setError(err.message)
         }
-    };
-
-    if (loading) {
-        return <p>Loading...</p>;
     }
 
+    if (loading) return;
+
     return (
-        <div className="flex h-screen w-full max-w-5xl">
-            <div className="p-4 bg-white shadow-lg rounded-lg">
-                <h1 className="text-3xl font-bold text-gray-800 mb-4">HF Data Explorer</h1>
-                <div className="space-y-4">
-                    <Input
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Enter your SQL query"
-                        className="w-full"
-                    />
-                    <Button onClick={runQuery} className="w-full">
-                        {isQueryRunning ? "Running..." : "Run Query"}
-                    </Button>
-                    <div className="mt-4">
-                        <h2 className="text-xl font-semibold mb-2">Query Result:</h2>
-                        {error ? (
-                            <p className="text-red-500">{error}</p>
-                        ) : results.length > 0 ? (
-                            <div>
-                                <pre className="bg-gray-100 p-2 rounded overflow-auto max-h-60">
-                                    Returned {results.length} rows
-                                    {results.length === MAX_ROWS && " (maximum reached)"}
-                                </pre>
-                            </div>
-                        ) : (
-                            <p>No results yet</p>
-                        )}
-                    </div>
-                </div>
+        <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-80 rounded-lg shadow-lg z-50">
+            <div className="p-4">
+                <h1 className="text-xl font-bold text-slate-800 mb-1">Data Explorer</h1>
+                <p className="text-xs text-slate-600 mb-3">
+                    Write and execute SQL queries in the editor below.
+                </p>
+                <Textarea
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Enter your SQL query here..."
+                    className="w-full p-2 text-sm border border-slate-300 rounded resize-none h-24 mb-3"
+                />
+                <Button
+                    onClick={runQuery}
+                    className="w-full">
+                    {isQueryRunning ? "Running..." : "Run Query"}
+                </Button>
+                {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+                {results.length > 0 && (
+                    <p className="text-xs text-center text-gray-600 mt-2">
+                        Returned {results.length} rows
+                        {results.length === MAX_ROWS && " (maximum reached)"}
+                    </p>
+                )}
             </div>
         </div>
-    );
+    )
 }
 
-export default Content;
+export default Content
