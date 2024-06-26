@@ -7,7 +7,14 @@
   "scripts": {
     "dev": "plasmo dev",
     "build": "plasmo build",
-    "package": "plasmo package"
+    "package": "plasmo package",
+    "pretty": "prettier --write .",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "**/*.{js,jsx,ts,tsx,json,md}": [
+      "pnpm run pretty"
+    ]
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.28.1-dev106.0",
@@ -18,6 +25,8 @@
     "@radix-ui/react-switch": "^1.1.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7",
     "lucide-react": "^0.396.0",
     "next-themes": "^0.3.0",
     "plasmo": "0.88.0",
@@ -44,7 +53,8 @@
     "stream-http": "^3.1.0",
     "tailwindcss": "^3.4.4",
     "typescript": "5.3.3",
-    "util": "^0.12.3"
+    "util": "^0.12.3",
+    "husky": "^8.0.0"
   },
   "manifest": {
     "host_permissions": [
