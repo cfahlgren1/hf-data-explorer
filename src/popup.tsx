@@ -1,30 +1,26 @@
 import "./styles.css"
 
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import React, { useEffect, useState } from "react"
+import { FaGithub } from "react-icons/fa"
 import { FiExternalLink } from "react-icons/fi"
+
+import { useStorage } from "@plasmohq/storage/hook"
 
 const DATASETS_URL = "https://huggingface.co/datasets"
 
 const IndexPopup = () => {
   const [currentUrl, setCurrentUrl] = useState<string | null>(null)
 
-  const userIsOnDatasetPage = currentUrl?.startsWith(DATASETS_URL + "/")
+  // set default visibility to false and persist it to storage
+  const [showExplorer, setShowExplorer] = useStorage("showExplorer", (v) =>
+    v === undefined ? false : v
+  )
 
   useEffect(() => {
-    const handleTabChange = () => {
-      getCurrentTabInfo()
-    }
-
     getCurrentTabInfo()
-
-    chrome.tabs.onUpdated.addListener(handleTabChange)
-    chrome.tabs.onActivated.addListener(handleTabChange)
-
-    return () => {
-      chrome.tabs.onUpdated.removeListener(handleTabChange)
-      chrome.tabs.onActivated.removeListener(handleTabChange)
-    }
   }, [])
 
   const getCurrentTabInfo = async () => {
@@ -37,40 +33,8 @@ const IndexPopup = () => {
     }
   }
 
-  const toggleSidebar = async () => {
-    if (userIsOnDatasetPage) {
-      try {
-        const tabId = await getCurrentTabId()
-        chrome.runtime.sendMessage({ action: "toggleSidebar", tabId }, async (response) => {
-          if (response.success) {
-            if (response.enabled) {
-              await chrome.sidePanel.open({ tabId })
-            }
-            window.close()
-          } else {
-            console.error("Error toggling sidebar:", response.error)
-          }
-        })
-      } catch (error) {
-        console.error("Error getting current tab ID:", error)
-      }
-    }
-  }
-
-  const getCurrentTabId = (): Promise<number> => {
-    return new Promise((resolve) => {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        resolve(tabs[0].id)
-      })
-    })
-  }
-
-  const openHuggingFaceDatasets = () => {
-    window.open(DATASETS_URL, "_blank")
-  }
-
   return (
-    <div className="p-4 bg-white shadow-lg w-72 rounded-lg flex flex-col items-center justify-center">
+    <div className="p-2 bg-white shadow-lg w-72 rounded-lg flex flex-col items-center justify-center">
       <h1 className="text-3xl font-bold text-gray-800">Data Explorer</h1>
       <p>Explore Hugging Face datasets interactively.</p>
       <div className="flex mt-10 flex-col space-y-2">
@@ -80,16 +44,34 @@ const IndexPopup = () => {
               Open a dataset to get started.
             </p>
           ) : (
-            <Button variant="outline" onClick={toggleSidebar}>
-              Open Data Explorer
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="data-explorer"
+                checked={showExplorer}
+                onCheckedChange={(checked) => setShowExplorer(checked)}
+              />
+              <Label htmlFor="data-explorer">Show Explorer</Label>
+            </div>
           )
         ) : (
-          <Button variant="ghost" onClick={openHuggingFaceDatasets}>
-            Hugging Face Datasets <FiExternalLink className="ml-2" />
+          <Button
+            variant="ghost"
+            onClick={() => window.open(DATASETS_URL, "_blank")}>
+            Datasets 🤗 <FiExternalLink className="ml-2" />
           </Button>
         )}
       </div>
+      <Button
+        variant="link"
+        className="text-xs italic mt-4 text-slate-800"
+        onClick={() =>
+          window.open(
+            "https://github.com/cfahlgren1/hf-data-explorer",
+            "_blank"
+          )
+        }>
+        Contribute <FaGithub className="ml-2" />
+      </Button>
     </div>
   )
 }
