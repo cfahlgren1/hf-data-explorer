@@ -33,7 +33,8 @@ const Explorer = () => {
   const [query, setQuery] = useState<string>("")
   const [results, setResults] = useState<any[]>([])
   const [error, setError] = useState<string | null>(null)
-  const { executeSQL, isQueryRunning, loading } = useDuckDB()
+  const { executeSQL, isQueryRunning, loading, isCancelling, cancelQuery } =
+    useDuckDB()
 
   const MAX_ROWS = 500
 
@@ -46,11 +47,21 @@ const Explorer = () => {
       const { rows } = await executeSQL(query, MAX_ROWS)
       setResults(rows)
     } catch (err) {
-      setError(err.message)
+      if (err.message !== "Query was cancelled") {
+        setError(err.message)
+      }
     }
   }
 
-  if (loading) return
+  const handleCancelQuery = async () => {
+    try {
+      await cancelQuery()
+    } catch (err) {
+      console.error("Error cancelling query:", err)
+    }
+  }
+
+  if (loading) return null
 
   return (
     <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-96 rounded-lg shadow-lg z-50">
@@ -65,9 +76,19 @@ const Explorer = () => {
           placeholder="Enter your SQL query here..."
           className="w-full p-2 text-sm min-h-[120px] border border-slate-300 rounded resize-none h-24 mb-3"
         />
-        <Button onClick={runQuery} className="w-full">
-          {isQueryRunning ? "Running..." : "Run Query"}
-        </Button>
+
+        {isQueryRunning ? (
+          <Button
+            onClick={handleCancelQuery}
+            className="w-full"
+            disabled={isCancelling}>
+            {isCancelling ? "Cancelling..." : "Cancel Query"}
+          </Button>
+        ) : (
+          <Button onClick={runQuery} className="w-full">
+            Run Query
+          </Button>
+        )}
         {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
         {results.length > 0 && (
           <p className="text-xs text-center text-gray-600 mt-2">
