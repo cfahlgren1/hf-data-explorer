@@ -1,70 +1,70 @@
 {
-  "name": "data-explorer",
-  "displayName": "Data Explorer",
-  "version": "0.0.2",
-  "description": "Explore data from Hugging Face datasets in your browser",
-  "author": "Caleb Fahlgren <cfahlgren1@gmail.com>",
-  "scripts": {
-    "dev": "plasmo dev",
-    "build": "plasmo build",
-    "package": "plasmo package",
-    "pretty": "prettier --write .",
-    "prepare": "husky install"
-  },
-  "lint-staged": {
-    "**/*.{js,jsx,ts,tsx,json,md}": [
-      "pnpm run pretty"
+    "name": "data-explorer",
+    "displayName": "Data Explorer",
+    "version": "0.0.2",
+    "description": "Explore data from Hugging Face datasets in your browser",
+    "author": "Caleb Fahlgren <cfahlgren1@gmail.com>",
+    "scripts": {
+        "dev": "plasmo dev",
+        "build": "plasmo build",
+        "package": "plasmo package",
+        "pretty": "prettier --write .",
+        "prepare": "husky install"
+    },
+    "lint-staged": {
+        "**/*.{js,jsx,ts,tsx,json,md}": [
+            "pnpm run pretty"
+        ]
+    },
+    "dependencies": {
+        "@duckdb/duckdb-wasm": "1.28.1-dev106.0",
+        "@plasmohq/storage": "^1.11.0",
+        "@radix-ui/react-icons": "^1.3.0",
+        "@radix-ui/react-label": "^2.1.0",
+        "@radix-ui/react-slot": "^1.1.0",
+        "@radix-ui/react-switch": "^1.1.0",
+        "class-variance-authority": "^0.7.0",
+        "clsx": "^2.1.1",
+        "husky": "^9.0.11",
+        "lint-staged": "^15.2.7",
+        "lucide-react": "^0.396.0",
+        "next-themes": "^0.3.0",
+        "plasmo": "0.88.0",
+        "react": "18.2.0",
+        "react-dom": "18.2.0",
+        "react-icons": "^5.2.1",
+        "sonner": "^1.5.0",
+        "tailwind-merge": "^2.3.0",
+        "tailwindcss-animate": "^1.0.7"
+    },
+    "devDependencies": {
+        "@ianvs/prettier-plugin-sort-imports": "4.1.1",
+        "@types/chrome": "0.0.258",
+        "@types/node": "20.11.5",
+        "@types/react": "18.2.48",
+        "@types/react-dom": "18.2.18",
+        "autoprefixer": "^10.4.19",
+        "https-browserify": "^1.0.0",
+        "os-browserify": "^0.3.0",
+        "path-browserify": "^1.0.0",
+        "postcss": "^8.4.38",
+        "prettier": "3.2.4",
+        "stream-browserify": "^3.0.0",
+        "stream-http": "^3.1.0",
+        "tailwindcss": "^3.4.4",
+        "typescript": "5.3.3",
+        "util": "^0.12.3",
+        "husky": "^8.0.0"
+    },
+    "manifest": {
+        "host_permissions": [
+            "https://huggingface.co/datasets/*"
+        ],
+        "content_security_policy": {
+            "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+        }
+    },
+    "contributors": [
+        "louisgv"
     ]
-  },
-  "dependencies": {
-    "@duckdb/duckdb-wasm": "1.28.1-dev106.0",
-    "@plasmohq/storage": "^1.11.0",
-    "@radix-ui/react-icons": "^1.3.0",
-    "@radix-ui/react-label": "^2.1.0",
-    "@radix-ui/react-slot": "^1.1.0",
-    "@radix-ui/react-switch": "^1.1.0",
-    "class-variance-authority": "^0.7.0",
-    "clsx": "^2.1.1",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.7",
-    "lucide-react": "^0.396.0",
-    "next-themes": "^0.3.0",
-    "plasmo": "0.88.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-icons": "^5.2.1",
-    "sonner": "^1.5.0",
-    "tailwind-merge": "^2.3.0",
-    "tailwindcss-animate": "^1.0.7"
-  },
-  "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "4.1.1",
-    "@types/chrome": "0.0.258",
-    "@types/node": "20.11.5",
-    "@types/react": "18.2.48",
-    "@types/react-dom": "18.2.18",
-    "autoprefixer": "^10.4.19",
-    "https-browserify": "^1.0.0",
-    "os-browserify": "^0.3.0",
-    "path-browserify": "^1.0.0",
-    "postcss": "^8.4.38",
-    "prettier": "3.2.4",
-    "stream-browserify": "^3.0.0",
-    "stream-http": "^3.1.0",
-    "tailwindcss": "^3.4.4",
-    "typescript": "5.3.3",
-    "util": "^0.12.3",
-    "husky": "^8.0.0"
-  },
-  "manifest": {
-    "host_permissions": [
-      "https://huggingface.co/datasets/*"
-    ],
-    "content_security_policy": {
-      "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
-    }
-  },
-  "contributors": [
-    "louisgv"
-  ]
 }

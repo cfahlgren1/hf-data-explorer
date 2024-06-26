@@ -1,51 +1,51 @@
 name: Node.js CI and Manual Release
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to release"
-        required: true
-        type: string
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    workflow_dispatch:
+        inputs:
+            version:
+                description: "Version to release"
+                required: true
+                type: string
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 8
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
-      - run: pnpm install
-      - run: pnpm build
-      - run: zip -r build.zip build
-      - uses: actions/upload-artifact@v3
-        with:
-          name: build
-          path: build.zip
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 8
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "pnpm"
+            - run: pnpm install
+            - run: pnpm build
+            - run: zip -r build.zip build
+            - uses: actions/upload-artifact@v3
+              with:
+                  name: build
+                  path: build.zip
 
-  release:
-    needs: build
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
-        with:
-          name: build
-      - name: Create Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create v${{ github.event.inputs.version }} \
-            --title "Release v${{ github.event.inputs.version }}" \
-            --notes "Release notes for version ${{ github.event.inputs.version }}" \
-            build.zip
+    release:
+        needs: build
+        if: github.event_name == 'workflow_dispatch'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/download-artifact@v3
+              with:
+                  name: build
+            - name: Create Release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh release create v${{ github.event.inputs.version }} \
+                    --title "Release v${{ github.event.inputs.version }}" \
+                    --notes "Release notes for version ${{ github.event.inputs.version }}" \
+                    build.zip
