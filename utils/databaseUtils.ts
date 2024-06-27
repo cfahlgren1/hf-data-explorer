@@ -31,11 +31,11 @@ export const getType = (type: string): string => {
         case "int1":
         case "int64":
         case "int32":
-            return "numericColumn"
+            return "number"
         case "boolean":
         case "bool":
         case "logical":
-            return "booleanColumn"
+            return "boolean"
         case "date":
         case "timestamp":
         case "timestamp with time zone":
@@ -43,7 +43,7 @@ export const getType = (type: string): string => {
         case "timestamptz":
         case "time":
         case "interval":
-            return "dateColumn"
+            return "date"
         case "uuid":
         case "varchar":
         case "char":
@@ -51,12 +51,12 @@ export const getType = (type: string): string => {
         case "text":
         case "string":
         case "utf8":
-            return "textColumn"
+            return "text"
         default:
-            return "textColumn"
+            return "text"
     }
 }
 
-export const getDuckDBColumnType = (duckDBType: string): string => {
+export const getDataGridColumnType = (duckDBType: string): string => {
     return getType(duckDBType)
 }

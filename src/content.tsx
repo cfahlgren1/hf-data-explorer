@@ -108,7 +108,7 @@ const Explorer = () => {
                     <>
                         <div className="flex-grow overflow-auto p-4">
                             <DataGrid
-                                initialData={{ rows, columns, hasMore: true }}
+                                initialData={{ rows, columns }}
                                 fetchNextBatch={fetchNextBatch}
                             />
                         </div>

@@ -8,7 +8,6 @@ interface DataGridProps<T extends RowData> {
     initialData: {
         rows: T[]
         columns: ColDef[]
-        hasMore: boolean
     }
     fetchNextBatch: () => Promise<{
         rows: T[]
@@ -30,14 +29,10 @@ export const DataGrid = <T extends RowData>({
         return {
             getRows: async (params) => {
                 const { startRow, successCallback, failCallback } = params
+
                 try {
                     if (startRow === 0) {
-                        successCallback(
-                            initialData.rows,
-                            initialData.hasMore
-                                ? undefined
-                                : initialData.rows.length
-                        )
+                        successCallback(initialData.rows)
                         setRowCount(initialData.rows.length)
                     } else {
                         const { rows, hasMore } = await fetchNextBatch()
@@ -71,6 +66,7 @@ export const DataGrid = <T extends RowData>({
                     rowModelType="infinite"
                     maxConcurrentDatasourceRequests={1}
                     onGridReady={onGridReady}
+                    cacheBlockSize={initialData.rows.length}
                 />
             </div>
             <p className="text-xs text-center text-slate-600 mt-2">

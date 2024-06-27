@@ -1,4 +1,4 @@
-import { getDuckDBColumnType } from "@/utils/databaseUtils"
+import { getDataGridColumnType } from "@/utils/databaseUtils"
 import * as duckdb from "@duckdb/duckdb-wasm"
 import type { ColDef } from "ag-grid-community"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -66,12 +66,13 @@ export const useDuckDB = () => {
 
                 // Read the first batch
                 const batch = await resultSet.next()
+
                 if (batch && !batch.done && batch.value.schema) {
                     currentColumns.current = batch.value.schema.fields.map(
                         (field) => ({
                             field: field.name,
                             headerName: field.name,
-                            type: getDuckDBColumnType(
+                            type: getDataGridColumnType(
                                 String(field.type).toLowerCase()
                             )
                         })
@@ -84,12 +85,9 @@ export const useDuckDB = () => {
                     )
                 }
 
-                console.log("Initial rows", rows.length)
-
                 return {
                     rows,
-                    columns: currentColumns.current,
-                    hasMore: batch !== null
+                    columns: currentColumns.current
                 }
             } finally {
                 setIsQueryRunning(false)
