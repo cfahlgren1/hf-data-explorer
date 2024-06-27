@@ -45,7 +45,7 @@ export class DuckDBClient {
                         .map((path) => `'${path}'`)
                         .join(", ")
                     await connection.query(
-                        `CREATE VIEW ${viewName} AS read_parquet([${filePathsString}]);`
+                        `CREATE VIEW ${viewName} AS SELECT * FROM read_parquet([${filePathsString}]);`
                     )
                 }
             } finally {
