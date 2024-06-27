@@ -1,6 +1,6 @@
 import type { ColDef, GridReadyEvent, IDatasource } from "ag-grid-community"
 import { AgGridReact } from "ag-grid-react"
-import { useCallback, useMemo, useRef, useState } from "react"
+import React, { useCallback, useMemo, useRef, useState } from "react"
 
 type RowData = Record<string, any>
 
@@ -16,68 +16,78 @@ interface DataGridProps<T extends RowData> {
     height?: number
 }
 
-export const DataGrid = <T extends RowData>({
-    initialData,
-    fetchNextBatch
-}: DataGridProps<T>) => {
-    const gridRef = useRef<AgGridReact>(null)
-    const [columnDefs, setColumnDefs] = useState<ColDef[]>(initialData.columns)
-    const [rowCount, setRowCount] = useState<number>(initialData.rows.length)
+export const DataGrid = React.memo(
+    <T extends RowData>({ initialData, fetchNextBatch }: DataGridProps<T>) => {
+        const gridRef = useRef<AgGridReact>(null)
+        const [columnDefs, setColumnDefs] = useState<ColDef[]>(
+            initialData.columns
+        )
+        const [rowCount, setRowCount] = useState<number>(
+            initialData.rows.length
+        )
+        const renderCount = useRef(0)
 
-    const datasource: IDatasource = useMemo(() => {
-        return {
-            getRows: async (params) => {
-                const { startRow, successCallback, failCallback } = params
+        // Log rerender
+        console.log(
+            `DataGrid rerendered. Render count: ${++renderCount.current}`
+        )
 
-                try {
-                    if (startRow === 0) {
-                        successCallback(initialData.rows)
-                        setRowCount(initialData.rows.length)
-                    } else {
-                        const { rows, hasMore } = await fetchNextBatch()
-                        successCallback(
-                            rows,
-                            hasMore ? undefined : startRow + rows.length
-                        )
-                        setRowCount((prevCount) => prevCount + rows.length)
+        const datasource: IDatasource = useMemo(() => {
+            return {
+                getRows: async (params) => {
+                    const { startRow, successCallback, failCallback } = params
+
+                    try {
+                        if (startRow === 0) {
+                            successCallback(initialData.rows)
+                            setRowCount(initialData.rows.length)
+                        } else {
+                            const { rows, hasMore } = await fetchNextBatch()
+                            successCallback(
+                                rows,
+                                hasMore ? undefined : startRow + rows.length
+                            )
+                            setRowCount((prevCount) => prevCount + rows.length)
+                        }
+                    } catch (error) {
+                        failCallback()
+                        console.error("Error fetching data:", error)
                     }
-                } catch (error) {
-                    failCallback()
-                    console.error("Error fetching data:", error)
                 }
             }
-        }
-    }, [initialData, fetchNextBatch])
+        }, [initialData, fetchNextBatch])
 
-    const onGridReady = useCallback(
-        (params: GridReadyEvent) => {
-            params.api.setGridOption("datasource", datasource)
-        },
-        [datasource]
-    )
+        const onGridReady = useCallback(
+            (params: GridReadyEvent) => {
+                params.api.setGridOption("datasource", datasource)
+            },
+            [datasource]
+        )
 
-    /*
+        /*
     For small results, we want to use autoHeight to show smaller grid,
     but not for large results as it causes performance issues.
     */
-    const isSmallResult = initialData.rows.length < 100
+        const isSmallResult = initialData.rows.length < 100
 
-    return (
-        <div>
-            <div className={`ag-theme-balham ${!isSmallResult ? `h-96` : ""}`}>
-                <AgGridReact
-                    ref={gridRef}
-                    domLayout={isSmallResult ? "autoHeight" : "normal"}
-                    columnDefs={columnDefs}
-                    rowModelType="infinite"
-                    maxConcurrentDatasourceRequests={1}
-                    onGridReady={onGridReady}
-                    cacheBlockSize={initialData.rows.length}
-                />
+        return (
+            <div>
+                <div
+                    className={`ag-theme-balham ${!isSmallResult ? `h-96` : ""}`}>
+                    <AgGridReact
+                        ref={gridRef}
+                        domLayout={isSmallResult ? "autoHeight" : "normal"}
+                        columnDefs={columnDefs}
+                        rowModelType="infinite"
+                        maxConcurrentDatasourceRequests={1}
+                        onGridReady={onGridReady}
+                        cacheBlockSize={initialData.rows.length}
+                    />
+                </div>
+                <p className="text-xs text-center text-slate-600 mt-2">
+                    Showing {rowCount} rows
+                </p>
             </div>
-            <p className="text-xs text-center text-slate-600 mt-2">
-                Showing {rowCount} rows
-            </p>
-        </div>
-    )
-}
+        )
+    }
+)
