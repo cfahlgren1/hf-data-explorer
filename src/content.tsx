@@ -28,8 +28,6 @@ export const getStyle = () => {
 const Content = () => {
     const [showExplorer] = useStorage("showExplorer")
 
-    console.log("showExplorer", showExplorer)
-
     if (!showExplorer) return null
 
     return <Explorer />
@@ -40,10 +38,14 @@ const Explorer = () => {
     const [rows, setRows] = useState<any[]>([])
     const [columns, setColumns] = useState<any[]>([])
     const [error, setError] = useState<string | null>(null)
-    const { executeSQL, isQueryRunning, loading, isCancelling, cancelQuery } =
-        useDuckDB()
-
-    const MAX_ROWS = 500
+    const {
+        executeSQL,
+        isQueryRunning,
+        loading,
+        fetchNextBatch,
+        isCancelling,
+        cancelQuery
+    } = useDuckDB()
 
     const runQuery = async () => {
         // if query is empty or already running ignore
@@ -53,7 +55,7 @@ const Explorer = () => {
         setError(null)
         try {
             const { rows: resultRows, columns: resultColumns } =
-                await executeSQL(query, MAX_ROWS)
+                await executeSQL(query)
             setRows(resultRows)
             setColumns(resultColumns)
         } catch (err) {
@@ -105,12 +107,11 @@ const Explorer = () => {
                 {rows.length > 0 && (
                     <>
                         <div className="flex-grow overflow-auto p-4">
-                            <DataGrid rowData={rows} columnDefs={columns} />
+                            <DataGrid
+                                initialData={{ rows, columns, hasMore: true }}
+                                fetchNextBatch={fetchNextBatch}
+                            />
                         </div>
-                        <p className="text-xs text-center text-gray-600 mt-2">
-                            Returned {rows.length} rows
-                            {rows.length === MAX_ROWS && " (truncated)"}
-                        </p>
                     </>
                 )}
             </div>

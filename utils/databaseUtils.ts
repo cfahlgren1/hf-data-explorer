@@ -31,20 +31,19 @@ export const getType = (type: string): string => {
         case "int1":
         case "int64":
         case "int32":
-            return "number"
+            return "numericColumn"
         case "boolean":
         case "bool":
         case "logical":
-            return "boolean"
+            return "booleanColumn"
         case "date":
         case "timestamp":
         case "timestamp with time zone":
         case "datetime":
         case "timestamptz":
-            return "date"
         case "time":
         case "interval":
-            return "dateString"
+            return "dateColumn"
         case "uuid":
         case "varchar":
         case "char":
@@ -52,9 +51,9 @@ export const getType = (type: string): string => {
         case "text":
         case "string":
         case "utf8":
-            return "text"
+            return "textColumn"
         default:
-            return "object"
+            return "textColumn"
     }
 }
 

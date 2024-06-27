@@ -1,7 +1,7 @@
 import { getDuckDBColumnType } from "@/utils/databaseUtils"
 import * as duckdb from "@duckdb/duckdb-wasm"
-import { ColDef } from "ag-grid-community"
-import { useCallback, useEffect, useState } from "react"
+import type { ColDef } from "ag-grid-community"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 export const useDuckDB = () => {
     const [db, setDb] = useState<duckdb.AsyncDuckDB | null>(null)
@@ -10,6 +10,8 @@ export const useDuckDB = () => {
     const [isCancelling, setIsCancelling] = useState(false)
     const [currentConnection, setCurrentConnection] =
         useState<duckdb.AsyncDuckDBConnection | null>(null)
+    const currentResultSet = useRef(null)
+    const currentColumns = useRef<ColDef[]>([])
 
     useEffect(() => {
         const initializeDuckDB = async () => {
@@ -47,7 +49,7 @@ export const useDuckDB = () => {
     }, [])
 
     const executeSQL = useCallback(
-        async (query: string, limit: number = 100000, params?: any[]) => {
+        async (query: string, params?: any[]) => {
             if (!db) throw new Error("Database not initialized")
 
             setIsQueryRunning(true)
@@ -59,47 +61,88 @@ export const useDuckDB = () => {
                     ? await (await connection.prepare(query)).send(...params)
                     : await connection.send(query)
 
+                currentResultSet.current = resultSet
                 const rows: Record<string, any>[] = []
-                let columns: ColDef[] = []
 
-                // read batches until we get to the limit or the end of the result set
-                for await (const batch of resultSet) {
-                    if (columns.length === 0 && batch.schema) {
-                        columns = batch.schema.fields.map((field) => ({
+                // Read the first batch
+                const batch = await resultSet.next()
+                if (batch && !batch.done && batch.value.schema) {
+                    currentColumns.current = batch.value.schema.fields.map(
+                        (field) => ({
                             field: field.name,
                             headerName: field.name,
                             type: getDuckDBColumnType(
                                 String(field.type).toLowerCase()
                             )
-                        }))
-                    }
-
-                    rows.push(...batch.toArray().map((row) => row.toJSON()))
-                    if (rows.length >= limit) break
+                        })
+                    )
                 }
 
-                return { rows, columns }
+                if (batch && !batch.done) {
+                    rows.push(
+                        ...batch.value.toArray().map((row) => row.toJSON())
+                    )
+                }
+
+                console.log("Initial rows", rows.length)
+
+                return {
+                    rows,
+                    columns: currentColumns.current,
+                    hasMore: batch !== null
+                }
             } finally {
-                await connection.close()
-                setCurrentConnection(null)
                 setIsQueryRunning(false)
             }
         },
         [db]
     )
 
-    // cancel a query in progress
+    const fetchNextBatch = useCallback(async () => {
+        if (!currentResultSet.current) {
+            // if no query is running, return empty result
+            return { rows: [], columns: currentColumns.current, hasMore: false }
+        }
+
+        const result = await currentResultSet.current.next()
+        const rows = result.done
+            ? []
+            : result.value.toArray().map((row) => row.toJSON())
+        const hasMore = !result.done
+
+        console.log(`Added ${rows.length} rows`)
+
+        // if no more rows, close the connection to free up resources
+        if (!hasMore) {
+            await currentConnection?.close()
+            setCurrentConnection(null)
+            currentResultSet.current = null
+        }
+
+        return { rows, columns: currentColumns.current, hasMore }
+    }, [currentConnection])
+
     const cancelQuery = useCallback(async () => {
         if (currentConnection && isQueryRunning) {
             setIsCancelling(true)
             try {
                 await currentConnection.cancelSent()
             } finally {
+                await currentConnection.close()
+                setCurrentConnection(null)
                 setIsQueryRunning(false)
                 setIsCancelling(false)
+                currentResultSet.current = null
             }
         }
     }, [currentConnection, isQueryRunning])
 
-    return { loading, executeSQL, isQueryRunning, isCancelling, cancelQuery }
+    return {
+        loading,
+        executeSQL,
+        fetchNextBatch,
+        isQueryRunning,
+        isCancelling,
+        cancelQuery
+    }
 }
