@@ -18,8 +18,7 @@ interface DataGridProps<T extends RowData> {
 
 export const DataGrid = <T extends RowData>({
     initialData,
-    fetchNextBatch,
-    height = 400
+    fetchNextBatch
 }: DataGridProps<T>) => {
     const gridRef = useRef<AgGridReact>(null)
     const [columnDefs, setColumnDefs] = useState<ColDef[]>(initialData.columns)
@@ -57,11 +56,18 @@ export const DataGrid = <T extends RowData>({
         [datasource]
     )
 
+    /*
+    For small results, we want to use autoHeight to show smaller grid,
+    but not for large results as it causes performance issues.
+    */
+    const isSmallResult = initialData.rows.length < 100
+
     return (
         <div>
-            <div className="ag-theme-balham" style={{ height }}>
+            <div className={`ag-theme-balham ${!isSmallResult ? `h-96` : ""}`}>
                 <AgGridReact
                     ref={gridRef}
+                    domLayout={isSmallResult ? "autoHeight" : "normal"}
                     columnDefs={columnDefs}
                     rowModelType="infinite"
                     maxConcurrentDatasourceRequests={1}
