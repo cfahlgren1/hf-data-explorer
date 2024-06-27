@@ -1,4 +1,3 @@
-import { getDataGridColumnType } from "@/utils/databaseUtils"
 import * as duckdb from "@duckdb/duckdb-wasm"
 
 export interface DuckDBClientConfig {
@@ -91,9 +90,6 @@ export class DuckDBClient {
             if (firstBatch && !firstBatch.done && firstBatch.value.schema) {
                 schema = firstBatch.value.schema.fields.map((field) => ({
                     name: field.name,
-                    type: getDataGridColumnType(
-                        String(field.type).toLowerCase()
-                    ),
                     databaseType: String(field.type)
                 }))
             }

@@ -82,7 +82,6 @@ interface RowData {
 interface ColumnDef {
     field: string
     headerName: string
-    type: string
 }
 
 const Explorer = () => {
@@ -95,7 +94,6 @@ const Explorer = () => {
         null
     )
     const rowsRef = useRef<RowData[]>([])
-    const hasMoreRef = useRef<boolean>(false)
 
     const runQuery = useCallback(
         async (query: string) => {
@@ -111,8 +109,7 @@ const Explorer = () => {
                 setColumns(
                     stream.schema.map((field) => ({
                         field: field.name,
-                        headerName: field.name,
-                        type: field.type
+                        headerName: field.name
                     }))
                 )
 
@@ -122,7 +119,6 @@ const Explorer = () => {
 
                 if (firstBatch) {
                     rowsRef.current = firstBatch
-                    hasMoreRef.current = !done
                     setRows(firstBatch)
                 }
             } catch (err) {
@@ -140,24 +136,21 @@ const Explorer = () => {
     )
 
     const fetchNextBatch = useCallback(async () => {
-        if (!streamRef.current) return { rows: [], hasMore: false }
+        if (!streamRef.current) return { rows: [] }
 
         try {
-            const { value: nextBatch, done } = await streamRef.current.next()
+            const { value: nextBatch } = await streamRef.current.next()
 
             if (nextBatch) {
                 rowsRef.current = [...rowsRef.current, ...nextBatch]
-                hasMoreRef.current = !done
-                return { rows: nextBatch, hasMore: !done }
+                return { rows: nextBatch }
             } else {
-                hasMoreRef.current = false
-                return { rows: [], hasMore: false }
+                return { rows: [] }
             }
         } catch (err) {
             console.error("Error fetching next batch:", err)
             setError("Error fetching next batch of data")
-            hasMoreRef.current = false
-            return { rows: [], hasMore: false }
+            return { rows: [] }
         }
     }, [])
 

@@ -11,7 +11,6 @@ interface DataGridProps<T extends RowData> {
     }
     fetchNextBatch: () => Promise<{
         rows: T[]
-        hasMore: boolean
     }>
     height?: number
 }
@@ -19,17 +18,8 @@ interface DataGridProps<T extends RowData> {
 export const DataGrid = React.memo(
     <T extends RowData>({ initialData, fetchNextBatch }: DataGridProps<T>) => {
         const gridRef = useRef<AgGridReact>(null)
-        const [columnDefs, setColumnDefs] = useState<ColDef[]>(
-            initialData.columns
-        )
         const [rowCount, setRowCount] = useState<number>(
             initialData.rows.length
-        )
-        const renderCount = useRef(0)
-
-        // Log rerender
-        console.log(
-            `DataGrid rerendered. Render count: ${++renderCount.current}`
         )
 
         const datasource: IDatasource = useMemo(() => {
@@ -42,11 +32,8 @@ export const DataGrid = React.memo(
                             successCallback(initialData.rows)
                             setRowCount(initialData.rows.length)
                         } else {
-                            const { rows, hasMore } = await fetchNextBatch()
-                            successCallback(
-                                rows,
-                                hasMore ? undefined : startRow + rows.length
-                            )
+                            const { rows } = await fetchNextBatch()
+                            successCallback(rows, startRow + rows.length)
                             setRowCount((prevCount) => prevCount + rows.length)
                         }
                     } catch (error) {
@@ -70,6 +57,15 @@ export const DataGrid = React.memo(
     */
         const isSmallResult = initialData.rows.length < 100
 
+        const defaultColDef = useMemo(() => {
+            return {
+                flex: 1,
+                minWidth: 100,
+                sortable: false,
+                filter: false
+            }
+        }, [])
+
         return (
             <div>
                 <div
@@ -77,7 +73,8 @@ export const DataGrid = React.memo(
                     <AgGridReact
                         ref={gridRef}
                         domLayout={isSmallResult ? "autoHeight" : "normal"}
-                        columnDefs={columnDefs}
+                        columnDefs={initialData.columns}
+                        defaultColDef={defaultColDef}
                         rowModelType="infinite"
                         maxConcurrentDatasourceRequests={1}
                         onGridReady={onGridReady}
