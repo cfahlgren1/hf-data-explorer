@@ -23,6 +23,8 @@
         "@radix-ui/react-label": "^2.1.0",
         "@radix-ui/react-slot": "^1.1.0",
         "@radix-ui/react-switch": "^1.1.0",
+        "ag-grid-community": "^31.3.2",
+        "ag-grid-react": "^31.3.2",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.1",
         "husky": "^9.0.11",
@@ -45,6 +47,7 @@
         "@types/react-dom": "18.2.18",
         "autoprefixer": "^10.4.19",
         "https-browserify": "^1.0.0",
+        "husky": "^8.0.0",
         "os-browserify": "^0.3.0",
         "path-browserify": "^1.0.0",
         "postcss": "^8.4.38",
@@ -53,8 +56,7 @@
         "stream-http": "^3.1.0",
         "tailwindcss": "^3.4.4",
         "typescript": "5.3.3",
-        "util": "^0.12.3",
-        "husky": "^8.0.0"
+        "util": "^0.12.3"
     },
     "manifest": {
         "host_permissions": [

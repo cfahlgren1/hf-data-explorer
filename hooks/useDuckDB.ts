@@ -1,5 +1,7 @@
+import { getDataGridColumnType } from "@/utils/databaseUtils"
 import * as duckdb from "@duckdb/duckdb-wasm"
-import { useCallback, useEffect, useState } from "react"
+import type { ColDef } from "ag-grid-community"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 export const useDuckDB = () => {
     const [db, setDb] = useState<duckdb.AsyncDuckDB | null>(null)
@@ -8,6 +10,8 @@ export const useDuckDB = () => {
     const [isCancelling, setIsCancelling] = useState(false)
     const [currentConnection, setCurrentConnection] =
         useState<duckdb.AsyncDuckDBConnection | null>(null)
+    const currentResultSet = useRef(null)
+    const currentColumns = useRef<ColDef[]>([])
 
     useEffect(() => {
         const initializeDuckDB = async () => {
@@ -45,7 +49,7 @@ export const useDuckDB = () => {
     }, [])
 
     const executeSQL = useCallback(
-        async (query: string, limit: number = 100000, params?: any[]) => {
+        async (query: string, params?: any[]) => {
             if (!db) throw new Error("Database not initialized")
 
             setIsQueryRunning(true)
@@ -57,36 +61,86 @@ export const useDuckDB = () => {
                     ? await (await connection.prepare(query)).send(...params)
                     : await connection.send(query)
 
-                const rows = []
+                currentResultSet.current = resultSet
+                const rows: Record<string, any>[] = []
 
-                // read batches until we get to the limit or the end of the result set
-                for await (const batch of resultSet) {
-                    rows.push(...batch.toArray())
-                    if (rows.length >= limit) break
+                // Read the first batch
+                const batch = await resultSet.next()
+
+                if (batch && !batch.done && batch.value.schema) {
+                    currentColumns.current = batch.value.schema.fields.map(
+                        (field) => ({
+                            field: field.name,
+                            headerName: field.name,
+                            type: getDataGridColumnType(
+                                String(field.type).toLowerCase()
+                            )
+                        })
+                    )
                 }
 
-                return { rows: rows.slice(0, limit) }
+                if (batch && !batch.done) {
+                    rows.push(
+                        ...batch.value.toArray().map((row) => row.toJSON())
+                    )
+                }
+
+                return {
+                    rows,
+                    columns: currentColumns.current
+                }
             } finally {
-                await connection.close()
-                setCurrentConnection(null)
                 setIsQueryRunning(false)
             }
         },
         [db]
     )
 
-    // cancel a query in progress
+    const fetchNextBatch = useCallback(async () => {
+        if (!currentResultSet.current) {
+            // if no query is running, return empty result
+            return { rows: [], columns: currentColumns.current, hasMore: false }
+        }
+
+        const result = await currentResultSet.current.next()
+        const rows = result.done
+            ? []
+            : result.value.toArray().map((row) => row.toJSON())
+        const hasMore = !result.done
+
+        console.log(`Added ${rows.length} rows`)
+
+        // if no more rows, close the connection to free up resources
+        if (!hasMore) {
+            await currentConnection?.close()
+            setCurrentConnection(null)
+            currentResultSet.current = null
+        }
+
+        return { rows, columns: currentColumns.current, hasMore }
+    }, [currentConnection])
+
     const cancelQuery = useCallback(async () => {
         if (currentConnection && isQueryRunning) {
             setIsCancelling(true)
             try {
                 await currentConnection.cancelSent()
             } finally {
+                await currentConnection.close()
+                setCurrentConnection(null)
                 setIsQueryRunning(false)
                 setIsCancelling(false)
+                currentResultSet.current = null
             }
         }
     }, [currentConnection, isQueryRunning])
 
-    return { loading, executeSQL, isQueryRunning, isCancelling, cancelQuery }
+    return {
+        loading,
+        executeSQL,
+        fetchNextBatch,
+        isQueryRunning,
+        isCancelling,
+        cancelQuery
+    }
 }

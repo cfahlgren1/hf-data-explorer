@@ -1,12 +1,18 @@
+import { DataGrid } from "@/components/data-grid"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useDuckDB } from "@/hooks/useDuckDB"
+// CSS imports
 import cssText from "data-text:~/styles.css"
+import agCSS from "data-text:ag-grid-community/styles/ag-grid.css"
+import agTheme from "data-text:ag-grid-community/styles/ag-theme-balham.css"
 import type { PlasmoCSConfig } from "plasmo"
 import React, { useState } from "react"
 
 import { useStorage } from "@plasmohq/storage/hook"
 
+import "ag-grid-community/styles/ag-grid.css"
+import "ag-grid-community/styles/ag-theme-balham.css"
 import "./styles.css"
 
 export const config: PlasmoCSConfig = {
@@ -15,14 +21,12 @@ export const config: PlasmoCSConfig = {
 
 export const getStyle = () => {
     const style = document.createElement("style")
-    style.textContent = cssText
+    style.textContent = cssText + agCSS + agTheme
     return style
 }
 
 const Content = () => {
     const [showExplorer] = useStorage("showExplorer")
-
-    console.log("showExplorer", showExplorer)
 
     if (!showExplorer) return null
 
@@ -31,23 +35,31 @@ const Content = () => {
 
 const Explorer = () => {
     const [query, setQuery] = useState<string>("")
-    const [results, setResults] = useState<any[]>([])
+    const [rows, setRows] = useState<any[]>([])
+    const [columns, setColumns] = useState<any[]>([])
     const [error, setError] = useState<string | null>(null)
-    const { executeSQL, isQueryRunning, loading, isCancelling, cancelQuery } =
-        useDuckDB()
-
-    const MAX_ROWS = 500
+    const {
+        executeSQL,
+        isQueryRunning,
+        loading,
+        fetchNextBatch,
+        isCancelling,
+        cancelQuery
+    } = useDuckDB()
 
     const runQuery = async () => {
         // if query is empty or already running ignore
         if (query.trim() === "" || isQueryRunning) return
-        setResults([])
+        setRows([])
+        setColumns([])
         setError(null)
         try {
-            const { rows } = await executeSQL(query, MAX_ROWS)
-            setResults(rows)
+            const { rows: resultRows, columns: resultColumns } =
+                await executeSQL(query)
+            setRows(resultRows)
+            setColumns(resultColumns)
         } catch (err) {
-            if (err.message !== "Query was cancelled") {
+            if (err.message !== "query was canceled") {
                 setError(err.message)
             }
         }
@@ -64,9 +76,9 @@ const Explorer = () => {
     if (loading) return null
 
     return (
-        <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-96 rounded-lg shadow-lg z-50">
-            <div className="p-4">
-                <h1 className="text-xl font-bold text-slate-800 mb-1">
+        <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-[480px] rounded-lg shadow-lg z-50 flex flex-col max-h-[80vh]">
+            <div className="p-4 flex-shrink-0">
+                <h1 className="text-xl font-bold text-slate-800 mb-2">
                     Data Explorer
                 </h1>
                 <p className="text-xs text-slate-600 mb-3">
@@ -76,7 +88,7 @@ const Explorer = () => {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Enter your SQL query here..."
-                    className="w-full p-2 text-sm min-h-[120px] border border-slate-300 rounded resize-none h-24 mb-3"
+                    className="w-full p-2 text-sm min-h-[120px] border border-slate-300 rounded resize-none mb-3"
                 />
 
                 {isQueryRunning ? (
@@ -92,11 +104,15 @@ const Explorer = () => {
                     </Button>
                 )}
                 {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
-                {results.length > 0 && (
-                    <p className="text-xs text-center text-gray-600 mt-2">
-                        Returned {results.length} rows
-                        {results.length === MAX_ROWS && " (truncated)"}
-                    </p>
+                {rows.length > 0 && (
+                    <>
+                        <div className="flex-grow overflow-auto p-4">
+                            <DataGrid
+                                initialData={{ rows, columns }}
+                                fetchNextBatch={fetchNextBatch}
+                            />
+                        </div>
+                    </>
                 )}
             </div>
         </div>
