@@ -64,7 +64,7 @@ export const DataGrid = <T extends RowData>({
 
     return (
         <div>
-            <div className="ag-theme-quartz" style={{ height }}>
+            <div className="ag-theme-balham" style={{ height }}>
                 <AgGridReact
                     ref={gridRef}
                     columnDefs={columnDefs}

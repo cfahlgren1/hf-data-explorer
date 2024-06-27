@@ -5,14 +5,14 @@ import { useDuckDB } from "@/hooks/useDuckDB"
 // CSS imports
 import cssText from "data-text:~/styles.css"
 import agCSS from "data-text:ag-grid-community/styles/ag-grid.css"
-import agTheme from "data-text:ag-grid-community/styles/ag-theme-quartz.css"
+import agTheme from "data-text:ag-grid-community/styles/ag-theme-balham.css"
 import type { PlasmoCSConfig } from "plasmo"
 import React, { useState } from "react"
 
 import { useStorage } from "@plasmohq/storage/hook"
 
 import "ag-grid-community/styles/ag-grid.css"
-import "ag-grid-community/styles/ag-theme-quartz.css"
+import "ag-grid-community/styles/ag-theme-balham.css"
 import "./styles.css"
 
 export const config: PlasmoCSConfig = {
@@ -59,7 +59,7 @@ const Explorer = () => {
             setRows(resultRows)
             setColumns(resultColumns)
         } catch (err) {
-            if (err.message !== "Query was cancelled") {
+            if (err.message !== "query was canceled") {
                 setError(err.message)
             }
         }
