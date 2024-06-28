@@ -20,8 +20,6 @@ import "ag-grid-community/styles/ag-grid.css"
 import "ag-grid-community/styles/ag-theme-balham.css"
 import "./styles.css"
 
-import type { DuckDBClientConfig } from "@/services/DuckDBClient"
-
 export const config: PlasmoCSConfig = {
     matches: ["https://huggingface.co/datasets/*/*"]
 }
@@ -95,18 +93,19 @@ const Explorer = () => {
     const [rows, setRows] = useState<RowData[]>([])
     const [columns, setColumns] = useState<ColumnDef[]>([])
     const [error, setError] = useState<string | null>(null)
-    const [duckDBConfig, setDuckDBConfig] = useState<DuckDBClientConfig>({})
-    const { client, loading } = useDuckDB(duckDBConfig)
+    const { client, loading } = useDuckDB()
     const [isStreaming, setIsStreaming] = useState<boolean>(false)
     const streamRef = useRef<AsyncGenerator<RowData[], void, unknown> | null>(
         null
     )
     const rowsRef = useRef<RowData[]>([])
-    const [loadingViews, setLoadingViews] = useState<boolean>(false)
+    const [viewsLoaded, setViewsLoaded] = useState<boolean>(false)
 
     useEffect(() => {
         const fetchParquetInfo = async () => {
-            setLoadingViews(true)
+            if (!client || loading) return
+
+            setViewsLoaded(false)
             try {
                 const dataset = getDatasetFromURL(window.location.href)
                 const data = await getParquetInfo(dataset)
@@ -120,17 +119,18 @@ const Explorer = () => {
                     views[name] = files.map((file) => file.url)
                 })
 
-                setDuckDBConfig({ views })
+                // load views
+                await client.loadConfig({ views })
             } catch (err) {
                 console.error("Error fetching parquet info:", err)
                 setError("Error fetching dataset information")
             } finally {
-                setLoadingViews(false)
+                setViewsLoaded(true)
             }
         }
 
         fetchParquetInfo()
-    }, [])
+    }, [client, loading])
 
     const runQuery = useCallback(
         async (query: string) => {
@@ -221,7 +221,7 @@ const Explorer = () => {
     return (
         <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-[480px] rounded-lg shadow-lg z-50 flex flex-col max-h-[80vh]">
             <div className="p-4 flex-shrink-0">
-                {loading ? (
+                {loading || !viewsLoaded ? (
                     <p className="text-sm font-bold text-black mb-3">
                         Loading Dataset...
                     </p>
