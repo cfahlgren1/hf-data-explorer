@@ -2,6 +2,8 @@
 
 A Chrome Extension for exploring and query Hugging Face datasets with SQL.
 
+<video controls src="./media/Demo.mp4" title="Demo"></video>
+
 ## Getting Started
 
 #### Installing
