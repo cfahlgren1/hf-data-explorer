@@ -62,8 +62,13 @@ export class DuckDBClient {
                     const filePathsString = filePaths
                         .map((path) => `'${path}'`)
                         .join(", ")
+
+                    // default is reserved in duckdb, so we use basic instead
+                    const actualViewName =
+                        viewName === "default" ? "basic" : viewName
+
                     await connection.query(
-                        `CREATE OR REPLACE VIEW ${viewName} AS SELECT * FROM read_parquet([${filePathsString}]);`
+                        `CREATE OR REPLACE VIEW ${actualViewName} AS SELECT * FROM read_parquet([${filePathsString}]);`
                     )
                 }
             } finally {

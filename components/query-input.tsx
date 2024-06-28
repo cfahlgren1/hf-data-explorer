@@ -2,6 +2,9 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import React, { useState } from "react"
+import type { KeyboardEvent } from "react"
+
+import CommandEnter from "./CommandEnter"
 
 interface QueryInputProps {
     onRunQuery: (query: string) => void
@@ -15,6 +18,14 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
     ({ onRunQuery, isRunning, isLoading, isCancelling, onCancelQuery }) => {
         const [query, setQuery] = useState<string>("")
 
+        // run query if user hits cmd + enter
+        const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault()
+                onRunQuery(query)
+            }
+        }
+
         return (
             <>
                 <Textarea
@@ -22,6 +33,7 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                         setQuery(e.target.value)
                     }
+                    onKeyDown={handleKeyDown}
                     placeholder="Enter your SQL query here..."
                     className="w-full p-2 text-sm min-h-[120px] border border-slate-300 rounded resize-none mb-3"
                 />
@@ -42,6 +54,7 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                         onClick={() => onRunQuery(query)}
                         className="w-full">
                         Run Query
+                        <CommandEnter />
                     </Button>
                 )}
             </>
