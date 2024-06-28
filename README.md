@@ -14,6 +14,10 @@ A Chrome Extension for exploring and query Hugging Face datasets with SQL.
 6. Select the unzipped folder containing the extension files.
 7. The HF Data Explorer extension should now be installed and visible in your Chrome toolbar.
 
+#### Limitations
+
+DuckDB WASM can only use ~ 4GB of memory (_more like 3.4GB with duckdb memory limit_). Since DuckDB WASM can't spill extra data to disk like the other clients, it may not be able to perform very large or advanced queries. However, DuckDB WASM is still **very** fast, performant, and can work for most workloads.
+
 ## Contributing
 
 This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
