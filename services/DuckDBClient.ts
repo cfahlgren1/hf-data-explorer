@@ -164,4 +164,19 @@ export class DuckDBClient {
             this.db = null
         }
     }
+
+    async getTables(): Promise<string[]> {
+        if (!this.db) {
+            throw new Error("Database not initialized")
+        }
+
+        const conn = await this.getConnection()
+        try {
+            const result = await conn.query("PRAGMA SHOW_TABLES")
+            return result.toArray().map((row) => row.name as string)
+        } finally {
+            await this.currentConnection.close()
+            this.currentConnection = null
+        }
+    }
 }

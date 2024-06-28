@@ -58,6 +58,7 @@ const Explorer = () => {
     )
     const rowsRef = useRef<RowData[]>([])
     const [viewsLoaded, setViewsLoaded] = useState<boolean>(false)
+    const [views, setViews] = useState<string[]>([])
 
     useEffect(() => {
         const fetchParquetInfo = async () => {
@@ -79,6 +80,10 @@ const Explorer = () => {
 
                 // load views
                 await client.loadConfig({ views })
+
+                // get views from duckdb
+                const successfulViews = await client.getTables()
+                setViews(successfulViews)
             } catch (err) {
                 console.error("Error fetching parquet info:", err)
                 setError("Error fetching dataset information")
@@ -190,6 +195,7 @@ const Explorer = () => {
                         isCancelling={isCancelling}
                         isLoading={loading || !viewsLoaded}
                         isRunning={isStreaming}
+                        views={views || []}
                         onCancelQuery={handleCancelQuery}
                     />
                     {error && (
