@@ -28,6 +28,7 @@
         "@testing-library/react-hooks": "^8.0.1",
         "ag-grid-community": "^31.3.2",
         "ag-grid-react": "^31.3.2",
+        "axios": "^1.7.2",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.1",
         "husky": "^9.0.11",

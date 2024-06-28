@@ -35,23 +35,7 @@ export class DuckDBClient {
         await this.db.instantiate(bundle.mainModule, bundle.pthreadWorker)
         URL.revokeObjectURL(worker_url)
 
-        if (this.config.views) {
-            const connection = await this.db.connect()
-            try {
-                for (const [viewName, filePaths] of Object.entries(
-                    this.config.views
-                )) {
-                    const filePathsString = filePaths
-                        .map((path) => `'${path}'`)
-                        .join(", ")
-                    await connection.query(
-                        `CREATE VIEW ${viewName} AS SELECT * FROM read_parquet([${filePathsString}]);`
-                    )
-                }
-            } finally {
-                await connection.close()
-            }
-        }
+        await this.loadConfig(this.config || {})
     }
 
     private async getConnection(): Promise<duckdb.AsyncDuckDBConnection> {
@@ -62,6 +46,36 @@ export class DuckDBClient {
             this.currentConnection = await this.db.connect()
         }
         return this.currentConnection
+    }
+
+    async loadConfig(config: DuckDBClientConfig): Promise<void> {
+        if (!this.db) {
+            throw new Error("Database not initialized")
+        }
+
+        if (config.views) {
+            const connection = await this.getConnection()
+            try {
+                for (const [viewName, filePaths] of Object.entries(
+                    config.views
+                )) {
+                    const filePathsString = filePaths
+                        .map((path) => `'${path}'`)
+                        .join(", ")
+
+                    // default is reserved in duckdb, so we use basic instead
+                    const actualViewName =
+                        viewName === "default" ? "main" : viewName
+
+                    await connection.query(
+                        `CREATE OR REPLACE VIEW ${actualViewName} AS SELECT * FROM read_parquet([${filePathsString}]);`
+                    )
+                }
+            } finally {
+                await connection.close()
+                this.currentConnection = null
+            }
+        }
     }
 
     async queryStream(query: string, params?: any[]) {
