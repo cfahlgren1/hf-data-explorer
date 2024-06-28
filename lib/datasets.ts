@@ -72,3 +72,15 @@ export async function getParquetInfo(
         throw error
     }
 }
+
+/*
+    Extract the dataset name from the URL
+*/
+export const getDatasetFromURL = (url: string): string | undefined => {
+    const regex = /https:\/\/huggingface\.co\/datasets\/([^\/]+)\/([^\/]+)/
+    const match = url.match(regex)
+    if (match && match[1] && match[2]) {
+        return `${match[1]}/${match[2]}`
+    }
+    return undefined
+}

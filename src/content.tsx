@@ -2,18 +2,25 @@ import { DataGrid } from "@/components/data-grid"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useDuckDB } from "@/hooks/useDuckDB"
+import {
+    getDatasetFromURL,
+    getNameFilesAndConfig,
+    getParquetInfo
+} from "@/lib/datasets"
 // CSS imports
 import cssText from "data-text:~/styles.css"
 import agCSS from "data-text:ag-grid-community/styles/ag-grid.css"
 import agTheme from "data-text:ag-grid-community/styles/ag-theme-balham.css"
 import type { PlasmoCSConfig } from "plasmo"
-import React, { useCallback, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { useStorage } from "@plasmohq/storage/hook"
 
 import "ag-grid-community/styles/ag-grid.css"
 import "ag-grid-community/styles/ag-theme-balham.css"
 import "./styles.css"
+
+import type { DuckDBClientConfig } from "@/services/DuckDBClient"
 
 export const config: PlasmoCSConfig = {
     matches: ["https://huggingface.co/datasets/*/*"]
@@ -88,12 +95,42 @@ const Explorer = () => {
     const [rows, setRows] = useState<RowData[]>([])
     const [columns, setColumns] = useState<ColumnDef[]>([])
     const [error, setError] = useState<string | null>(null)
-    const { client, loading } = useDuckDB()
+    const [duckDBConfig, setDuckDBConfig] = useState<DuckDBClientConfig>({})
+    const { client, loading } = useDuckDB(duckDBConfig)
     const [isStreaming, setIsStreaming] = useState<boolean>(false)
     const streamRef = useRef<AsyncGenerator<RowData[], void, unknown> | null>(
         null
     )
     const rowsRef = useRef<RowData[]>([])
+    const [loadingViews, setLoadingViews] = useState<boolean>(false)
+
+    useEffect(() => {
+        const fetchParquetInfo = async () => {
+            setLoadingViews(true)
+            try {
+                const dataset = getDatasetFromURL(window.location.href)
+                const data = await getParquetInfo(dataset)
+                const nameFilesConfig = getNameFilesAndConfig(
+                    data.parquet_files
+                )
+
+                // create views for each config and split
+                const views: { [key: string]: string[] } = {}
+                nameFilesConfig.forEach(({ name, files }) => {
+                    views[name] = files.map((file) => file.url)
+                })
+
+                setDuckDBConfig({ views })
+            } catch (err) {
+                console.error("Error fetching parquet info:", err)
+                setError("Error fetching dataset information")
+            } finally {
+                setLoadingViews(false)
+            }
+        }
+
+        fetchParquetInfo()
+    }, [])
 
     const runQuery = useCallback(
         async (query: string) => {
@@ -181,28 +218,35 @@ const Explorer = () => {
         [rows.length, columns, fetchNextBatch]
     )
 
-    if (loading) return null
-
     return (
         <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-[480px] rounded-lg shadow-lg z-50 flex flex-col max-h-[80vh]">
             <div className="p-4 flex-shrink-0">
-                <h1 className="text-xl font-bold text-slate-800 mb-2">
-                    Data Explorer
-                </h1>
-                <p className="text-xs text-slate-600 mb-3">
-                    Write and execute SQL queries in the editor below.
-                </p>
-                <QueryInput
-                    onRunQuery={runQuery}
-                    isRunning={isRunning || isStreaming}
-                    isCancelling={isCancelling}
-                    onCancelQuery={handleCancelQuery}
-                />
-                {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
-                {memoizedDataGrid}
+                {loading ? (
+                    <p className="text-sm font-bold text-black mb-3">
+                        Loading Dataset...
+                    </p>
+                ) : (
+                    <>
+                        <h1 className="text-xl font-bold text-slate-800 mb-2">
+                            Data Explorer
+                        </h1>
+                        <p className="text-xs text-slate-600 mb-3">
+                            Write and execute SQL queries in the editor below.
+                        </p>
+                        <QueryInput
+                            onRunQuery={runQuery}
+                            isRunning={isRunning || isStreaming}
+                            isCancelling={isCancelling}
+                            onCancelQuery={handleCancelQuery}
+                        />
+                        {error && (
+                            <p className="text-xs text-red-500 mt-2">{error}</p>
+                        )}
+                        {memoizedDataGrid}
+                    </>
+                )}
             </div>
         </div>
     )
 }
-
 export default Content
