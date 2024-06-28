@@ -9,13 +9,13 @@ import CommandEnter from "./CommandEnter"
 interface QueryInputProps {
     onRunQuery: (query: string) => void
     isRunning: boolean
-    isCancelling: boolean
     isLoading: boolean
     onCancelQuery: () => void
+    isCancelling: boolean
 }
 
 const QueryInput: React.FC<QueryInputProps> = React.memo(
-    ({ onRunQuery, isRunning, isLoading, isCancelling, onCancelQuery }) => {
+    ({ onRunQuery, isRunning, isLoading, onCancelQuery, isCancelling }) => {
         const [query, setQuery] = useState<string>("")
 
         // run query if user hits cmd + enter

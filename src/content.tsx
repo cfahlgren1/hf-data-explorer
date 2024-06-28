@@ -52,6 +52,7 @@ const Explorer = () => {
     const [error, setError] = useState<string | null>(null)
     const { client, loading } = useDuckDB()
     const [isStreaming, setIsStreaming] = useState<boolean>(false)
+    const [isCancelling, setIsCancelling] = useState<boolean>(false)
     const streamRef = useRef<AsyncGenerator<RowData[], void, unknown> | null>(
         null
     )
@@ -150,17 +151,16 @@ const Explorer = () => {
 
     const handleCancelQuery = useCallback(async () => {
         if (!client) return
+        setIsCancelling(true)
         try {
             await client.cancelQuery()
             streamRef.current = null
         } catch (err) {
             console.error("Error cancelling query:", err)
+        } finally {
+            setIsCancelling(false)
         }
     }, [client])
-
-    const { isRunning, isCancelling } = client
-        ? client.getQueryStatus()
-        : { isRunning: false, isCancelling: false }
 
     const memoizedDataGrid = useMemo(
         () =>
@@ -183,13 +183,13 @@ const Explorer = () => {
                         Data Explorer
                     </h1>
                     <p className="text-xs text-slate-600 mb-3">
-                        Write and execute SQL queries in the editor below.
+                        Query datasets with SQL 🤗
                     </p>
                     <QueryInput
                         onRunQuery={runQuery}
-                        isLoading={loading || !viewsLoaded}
-                        isRunning={isRunning || isStreaming}
                         isCancelling={isCancelling}
+                        isLoading={loading || !viewsLoaded}
+                        isRunning={isStreaming}
                         onCancelQuery={handleCancelQuery}
                     />
                     {error && (
