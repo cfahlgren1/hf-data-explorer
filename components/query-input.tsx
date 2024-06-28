@@ -5,6 +5,7 @@ import React, { useState } from "react"
 import type { KeyboardEvent } from "react"
 
 import CommandEnter from "./CommandEnter"
+import { Badge } from "./ui/badge"
 
 interface QueryInputProps {
     onRunQuery: (query: string) => void
@@ -12,10 +13,18 @@ interface QueryInputProps {
     isLoading: boolean
     onCancelQuery: () => void
     isCancelling: boolean
+    views: string[]
 }
 
 const QueryInput: React.FC<QueryInputProps> = React.memo(
-    ({ onRunQuery, isRunning, isLoading, onCancelQuery, isCancelling }) => {
+    ({
+        onRunQuery,
+        isRunning,
+        views,
+        isLoading,
+        onCancelQuery,
+        isCancelling
+    }) => {
         const [query, setQuery] = useState<string>("")
 
         // run query if user hits cmd + enter
@@ -24,6 +33,12 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                 e.preventDefault()
                 onRunQuery(query)
             }
+        }
+
+        // helpful auto-fill for preview query
+        const handleTableClick = (tableName: string) => {
+            const newQuery = `SELECT * FROM ${tableName} LIMIT 500`
+            setQuery(newQuery)
         }
 
         return (
@@ -37,6 +52,24 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                     placeholder="Enter your SQL query here..."
                     className="w-full p-2 text-sm min-h-[120px] border border-slate-300 rounded resize-none mb-3"
                 />
+                {views.length > 0 && (
+                    <div className="mb-4">
+                        <label className="block text-xs font-medium text-slate-700 mb-2">
+                            Tables:
+                        </label>
+                        <div className="flex flex-wrap gap-1">
+                            {views.map((view) => (
+                                <Badge
+                                    className="text-xs cursor-pointer"
+                                    variant="secondary"
+                                    key={view}
+                                    onClick={() => handleTableClick(view)}>
+                                    {view}
+                                </Badge>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 {isRunning ? (
                     <Button
                         onClick={onCancelQuery}
