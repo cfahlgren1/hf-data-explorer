@@ -1,6 +1,5 @@
 import { DataGrid } from "@/components/data-grid"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import QueryInput from "@/components/query-input"
 import { useDuckDB } from "@/hooks/useDuckDB"
 import {
     getDatasetFromURL,
@@ -37,48 +36,6 @@ const Content = () => {
 
     return <Explorer />
 }
-
-interface QueryInputProps {
-    onRunQuery: (query: string) => void
-    isRunning: boolean
-    isCancelling: boolean
-    onCancelQuery: () => void
-}
-
-const QueryInput: React.FC<QueryInputProps> = React.memo(
-    ({ onRunQuery, isRunning, isCancelling, onCancelQuery }) => {
-        const [query, setQuery] = useState<string>("")
-
-        return (
-            <>
-                <Textarea
-                    value={query}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                        setQuery(e.target.value)
-                    }
-                    placeholder="Enter your SQL query here..."
-                    className="w-full p-2 text-sm min-h-[120px] border border-slate-300 rounded resize-none mb-3"
-                />
-                {isRunning ? (
-                    <Button
-                        onClick={onCancelQuery}
-                        className="w-full"
-                        disabled={isCancelling}>
-                        {isCancelling ? "Cancelling..." : "Cancel Query"}
-                    </Button>
-                ) : (
-                    <Button
-                        onClick={() => onRunQuery(query)}
-                        className="w-full">
-                        Run Query
-                    </Button>
-                )}
-            </>
-        )
-    }
-)
-
-QueryInput.displayName = "QueryInput"
 
 interface RowData {
     [key: string]: any
@@ -221,30 +178,25 @@ const Explorer = () => {
     return (
         <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-[480px] rounded-lg shadow-lg z-50 flex flex-col max-h-[80vh]">
             <div className="p-4 flex-shrink-0">
-                {loading || !viewsLoaded ? (
-                    <p className="text-sm font-bold text-black mb-3">
-                        Loading Dataset...
+                <>
+                    <h1 className="text-xl font-bold text-slate-800 mb-2">
+                        Data Explorer
+                    </h1>
+                    <p className="text-xs text-slate-600 mb-3">
+                        Write and execute SQL queries in the editor below.
                     </p>
-                ) : (
-                    <>
-                        <h1 className="text-xl font-bold text-slate-800 mb-2">
-                            Data Explorer
-                        </h1>
-                        <p className="text-xs text-slate-600 mb-3">
-                            Write and execute SQL queries in the editor below.
-                        </p>
-                        <QueryInput
-                            onRunQuery={runQuery}
-                            isRunning={isRunning || isStreaming}
-                            isCancelling={isCancelling}
-                            onCancelQuery={handleCancelQuery}
-                        />
-                        {error && (
-                            <p className="text-xs text-red-500 mt-2">{error}</p>
-                        )}
-                        {memoizedDataGrid}
-                    </>
-                )}
+                    <QueryInput
+                        onRunQuery={runQuery}
+                        isLoading={loading || !viewsLoaded}
+                        isRunning={isRunning || isStreaming}
+                        isCancelling={isCancelling}
+                        onCancelQuery={handleCancelQuery}
+                    />
+                    {error && (
+                        <p className="text-xs text-red-500 mt-2">{error}</p>
+                    )}
+                    {memoizedDataGrid}
+                </>
             </div>
         </div>
     )
