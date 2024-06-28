@@ -55,7 +55,7 @@ export const DataGrid = React.memo(
     For small results, we want to use autoHeight to show smaller grid,
     but not for large results as it causes performance issues.
     */
-        const isSmallResult = initialData.rows.length < 100
+        const isSmallResult = initialData.rows.length < 20
 
         const defaultColDef = useMemo(() => {
             return {
