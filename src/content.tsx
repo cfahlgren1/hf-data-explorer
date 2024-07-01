@@ -29,14 +29,6 @@ export const getStyle = () => {
     return style
 }
 
-const Content = () => {
-    const [showExplorer] = useStorage("showExplorer")
-
-    if (!showExplorer) return null
-
-    return <Explorer />
-}
-
 interface RowData {
     [key: string]: any
 }
@@ -44,6 +36,47 @@ interface RowData {
 interface ColumnDef {
     field: string
     headerName: string
+}
+
+const useParquetInfo = (client, loading, loadViewsOnStartup) => {
+    const [views, setViews] = useState([])
+    const [viewsLoaded, setViewsLoaded] = useState(false)
+    const [error, setError] = useState(null)
+
+    useEffect(() => {
+        const fetchParquetInfo = async () => {
+            if (!client || loading || !loadViewsOnStartup) return
+
+            setViewsLoaded(false)
+            setError(null)
+
+            try {
+                const dataset = getDatasetFromURL(window.location.href)
+                const data = await getParquetInfo(dataset)
+                const nameFilesConfig = getNameFilesAndConfig(
+                    data.parquet_files
+                )
+
+                const views = nameFilesConfig.reduce((acc, { name, files }) => {
+                    acc[name] = files.map((file) => file.url)
+                    return acc
+                }, {})
+
+                await client.loadConfig({ views })
+                const successfulViews = await client.getTables()
+                setViews(successfulViews)
+            } catch (err) {
+                console.error("Error fetching parquet info:", err)
+                setError("Error fetching dataset information")
+            } finally {
+                setViewsLoaded(true)
+            }
+        }
+
+        fetchParquetInfo()
+    }, [client, loading, loadViewsOnStartup])
+
+    return { views, viewsLoaded, error }
 }
 
 const Explorer = () => {
@@ -57,43 +90,12 @@ const Explorer = () => {
         null
     )
     const rowsRef = useRef<RowData[]>([])
-    const [viewsLoaded, setViewsLoaded] = useState<boolean>(false)
-    const [views, setViews] = useState<string[]>([])
-
-    useEffect(() => {
-        const fetchParquetInfo = async () => {
-            if (!client || loading) return
-
-            setViewsLoaded(false)
-            try {
-                const dataset = getDatasetFromURL(window.location.href)
-                const data = await getParquetInfo(dataset)
-                const nameFilesConfig = getNameFilesAndConfig(
-                    data.parquet_files
-                )
-
-                // create views for each config and split
-                const views: { [key: string]: string[] } = {}
-                nameFilesConfig.forEach(({ name, files }) => {
-                    views[name] = files.map((file) => file.url)
-                })
-
-                // load views
-                await client.loadConfig({ views })
-
-                // get views from duckdb
-                const successfulViews = await client.getTables()
-                setViews(successfulViews)
-            } catch (err) {
-                console.error("Error fetching parquet info:", err)
-                setError("Error fetching dataset information")
-            } finally {
-                setViewsLoaded(true)
-            }
-        }
-
-        fetchParquetInfo()
-    }, [client, loading])
+    const [loadViewsOnStartup] = useStorage("loadViewsOnStartup")
+    const {
+        views,
+        viewsLoaded,
+        error: viewsError
+    } = useParquetInfo(client, loading, loadViewsOnStartup)
 
     const runQuery = useCallback(
         async (query: string) => {
@@ -144,9 +146,8 @@ const Explorer = () => {
             if (nextBatch) {
                 rowsRef.current = [...rowsRef.current, ...nextBatch]
                 return { rows: nextBatch }
-            } else {
-                return { rows: [] }
             }
+            return { rows: [] }
         } catch (err) {
             console.error("Error fetching next batch:", err)
             setError("Error fetching next batch of data")
@@ -183,28 +184,34 @@ const Explorer = () => {
     return (
         <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-[480px] rounded-lg shadow-lg z-50 flex flex-col max-h-[80vh]">
             <div className="p-4 flex-shrink-0">
-                <>
-                    <h1 className="text-xl font-bold text-slate-800 mb-2">
-                        Data Explorer
-                    </h1>
-                    <p className="text-xs text-slate-600 mb-3">
-                        Query datasets with SQL 🤗
+                <h1 className="text-xl font-bold text-slate-800 mb-2">
+                    Data Explorer
+                </h1>
+                <p className="text-xs text-slate-600 mb-3">
+                    Query datasets with SQL 🤗
+                </p>
+                <QueryInput
+                    onRunQuery={runQuery}
+                    isCancelling={isCancelling}
+                    isLoading={loading || (loadViewsOnStartup && !viewsLoaded)}
+                    isRunning={isStreaming}
+                    views={views || []}
+                    onCancelQuery={handleCancelQuery}
+                />
+                {(error || viewsError) && (
+                    <p className="text-xs text-red-500 mt-2">
+                        {error || viewsError}
                     </p>
-                    <QueryInput
-                        onRunQuery={runQuery}
-                        isCancelling={isCancelling}
-                        isLoading={loading || !viewsLoaded}
-                        isRunning={isStreaming}
-                        views={views || []}
-                        onCancelQuery={handleCancelQuery}
-                    />
-                    {error && (
-                        <p className="text-xs text-red-500 mt-2">{error}</p>
-                    )}
-                    {memoizedDataGrid}
-                </>
+                )}
+                {memoizedDataGrid}
             </div>
         </div>
     )
 }
+
+const Content = () => {
+    const [showExplorer] = useStorage("showExplorer")
+    return showExplorer ? <Explorer /> : null
+}
+
 export default Content

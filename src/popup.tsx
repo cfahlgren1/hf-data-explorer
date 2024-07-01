@@ -18,6 +18,10 @@ const IndexPopup = () => {
     const [showExplorer, setShowExplorer] = useStorage("showExplorer", (v) =>
         v === undefined ? false : v
     )
+    const [loadViewsOnStartup, setLoadViewsOnStartup] = useStorage(
+        "loadViewsOnStartup",
+        (v) => (v === undefined ? true : v)
+    )
 
     useEffect(() => {
         getCurrentTabInfo()
@@ -37,7 +41,7 @@ const IndexPopup = () => {
     }
 
     return (
-        <div className="p-2 bg-white shadow-lg w-72 rounded-lg flex flex-col items-center justify-center">
+        <div className="p-3 bg-white shadow-lg w-72 rounded-lg flex flex-col items-center justify-center">
             <h1 className="text-3xl font-bold text-gray-800">Data Explorer</h1>
             <p>Explore Hugging Face datasets interactively.</p>
             <div className="flex mt-10 flex-col space-y-2">
@@ -47,15 +51,48 @@ const IndexPopup = () => {
                             Open a dataset to get started.
                         </p>
                     ) : (
-                        <div className="flex items-center space-x-2">
-                            <Switch
-                                id="data-explorer"
-                                checked={showExplorer}
-                                onCheckedChange={(checked) =>
-                                    setShowExplorer(checked)
-                                }
-                            />
-                            <Label htmlFor="data-explorer">Show Explorer</Label>
+                        <div className="space-y-6 mb-6">
+                            <div className="flex items-start space-x-3">
+                                <Switch
+                                    id="data-explorer"
+                                    checked={showExplorer}
+                                    onCheckedChange={(checked) =>
+                                        setShowExplorer(checked)
+                                    }
+                                />
+                                <div>
+                                    <Label
+                                        htmlFor="data-explorer"
+                                        className="text-sm font-medium text-gray-800">
+                                        Show Explorer
+                                    </Label>
+                                    <p className="text-xs text-gray-500">
+                                        Show or hide the explorer interface on
+                                        dataset pages
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start space-x-3">
+                                <Switch
+                                    id="load-views"
+                                    checked={loadViewsOnStartup}
+                                    onCheckedChange={(checked) =>
+                                        setLoadViewsOnStartup(checked)
+                                    }
+                                />
+                                <div>
+                                    <Label
+                                        htmlFor="load-views"
+                                        className="text-sm font-medium text-gray-800">
+                                        Load Views on Startup
+                                    </Label>
+                                    <p className="text-xs text-gray-500">
+                                        Automatically load dataset configs and
+                                        splits as views
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     )
                 ) : (
