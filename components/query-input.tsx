@@ -54,19 +54,30 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                 />
                 {views.length > 0 && (
                     <div className="mb-4">
-                        <label className="block text-xs font-medium text-slate-700 mb-2">
-                            Tables:
+                        <label className="block text-sm font-medium text-slate-800 mb-2">
+                            Tables
                         </label>
-                        <div className="flex flex-wrap gap-1">
-                            {views.map((view) => (
-                                <Badge
-                                    className="text-xs cursor-pointer"
-                                    variant="secondary"
-                                    key={view}
-                                    onClick={() => handleTableClick(view)}>
-                                    {view}
-                                </Badge>
-                            ))}
+                        <div
+                            className="overflow-x-scroll pb-2"
+                            style={{
+                                scrollbarWidth: "none",
+                                msOverflowStyle: "none",
+                                maskImage:
+                                    "linear-gradient(to right, transparent, black 8px, black calc(100% - 8px), transparent)",
+                                WebkitMaskImage:
+                                    "linear-gradient(to right, transparent, black 8px, black calc(100% - 8px), transparent)"
+                            }}>
+                            <div className="flex gap-1">
+                                {views.map((view) => (
+                                    <Badge
+                                        key={view}
+                                        variant="secondary"
+                                        className="text-xs cursor-pointer whitespace-nowrap"
+                                        onClick={() => handleTableClick(view)}>
+                                        {view}
+                                    </Badge>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 )}
