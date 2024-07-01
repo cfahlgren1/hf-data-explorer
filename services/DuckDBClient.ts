@@ -10,6 +10,14 @@ type SchemaField = {
     databaseType: string
 }
 
+function sanitizeViewName(name: string): string {
+    // Replace invalid characters with underscores
+    let sanitized = name.replace(/[^a-zA-Z0-9_]/g, "_")
+    sanitized = sanitized.toLowerCase()
+
+    return sanitized
+}
+
 export class DuckDBClient {
     private db: duckdb.AsyncDuckDB | null = null
     private currentConnection: duckdb.AsyncDuckDBConnection | null = null
@@ -56,6 +64,13 @@ export class DuckDBClient {
         if (config.views) {
             const connection = await this.getConnection()
             try {
+                const keywordsResult = await connection.query(
+                    "SELECT keyword_name FROM duckdb_keywords() WHERE keyword_category = 'reserved';"
+                )
+                const invalidKeywords = keywordsResult
+                    .toArray()
+                    .map((row) => row.keyword_name)
+
                 for (const [viewName, filePaths] of Object.entries(
                     config.views
                 )) {
@@ -63,12 +78,15 @@ export class DuckDBClient {
                         .map((path) => `'${path}'`)
                         .join(", ")
 
-                    // default is reserved in duckdb, so we use basic instead
-                    const actualViewName =
-                        viewName === "default" ? "main" : viewName
+                    let sanitizedViewName = sanitizeViewName(viewName)
+
+                    // Check if the sanitized name is a duckdb reserved keyword
+                    if (invalidKeywords.includes(sanitizedViewName)) {
+                        sanitizedViewName += "_view"
+                    }
 
                     await connection.query(
-                        `CREATE OR REPLACE VIEW ${actualViewName} AS SELECT * FROM read_parquet([${filePathsString}]);`
+                        `CREATE OR REPLACE VIEW ${sanitizedViewName} AS SELECT * FROM read_parquet([${filePathsString}]);`
                     )
                 }
             } finally {
