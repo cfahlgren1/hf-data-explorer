@@ -97,6 +97,8 @@ const Explorer = () => {
         error: viewsError
     } = useParquetInfo(client, loading, loadViewsOnStartup)
 
+    const [showViewsError, setShowViewsError] = useState(true)
+
     const runQuery = useCallback(
         async (query: string) => {
             if (!client || query.trim() === "" || isStreaming) return
@@ -105,6 +107,7 @@ const Explorer = () => {
             setColumns([])
             setError(null)
             setIsStreaming(true)
+            setShowViewsError(false) // Hide viewsError when a query is run
 
             try {
                 const stream = await client.queryStream(query)
@@ -198,11 +201,23 @@ const Explorer = () => {
                     views={views || []}
                     onCancelQuery={handleCancelQuery}
                 />
-                {(error || viewsError) && (
+                {(error || (showViewsError && viewsError)) && (
                     <p className="text-xs text-red-500 mt-2">
                         {error || viewsError}
                     </p>
                 )}
+                {
+                    // Show a message if there are no views
+                    viewsLoaded &&
+                        !viewsError &&
+                        showViewsError &&
+                        views.length === 0 && (
+                            <p className="text-xs italic text-slate-600 mt-2">
+                                Sorry there wasn't a parquet conversion for this
+                                dataset.
+                            </p>
+                        )
+                }
                 {memoizedDataGrid}
             </div>
         </div>
