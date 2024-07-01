@@ -26,6 +26,7 @@ jobs:
                   cache: "pnpm"
             - run: pnpm install
             - run: pnpm build
+            - run: pnpm test
             - run: zip -r build.zip build
             - uses: actions/upload-artifact@v3
               with:
