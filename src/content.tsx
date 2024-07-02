@@ -53,22 +53,36 @@ const useParquetInfo = (client, loading, loadViewsOnStartup) => {
 
             try {
                 const dataset = getDatasetFromURL(window.location.href)
-                const data = await getParquetInfo(dataset)
-                const nameFilesConfig = getNameFilesAndConfig(
-                    data.parquet_files
+                const {
+                    data,
+                    statusCode,
+                    error: apiError
+                } = await getParquetInfo(dataset)
+
+                // user hasn't set their API token
+                if (statusCode === 401) {
+                    throw new Error(
+                        "Please set your Hugging Face API token to access this dataset."
+                    )
+                }
+                if (apiError || !data) {
+                    throw new Error("There was an issue loading the datasets.")
+                }
+
+                const views = getNameFilesAndConfig(data.parquet_files).reduce(
+                    (acc, { name, files }) => ({
+                        ...acc,
+                        [name]: files.map((file) => file.url)
+                    }),
+                    {}
                 )
 
-                const views = nameFilesConfig.reduce((acc, { name, files }) => {
-                    acc[name] = files.map((file) => file.url)
-                    return acc
-                }, {})
-
                 await client.loadConfig({ views })
-                const successfulViews = await client.getTables()
-                setViews(successfulViews)
+                setViews(await client.getTables())
             } catch (err) {
-                console.error("Error fetching parquet info:", err)
-                setError("Error fetching dataset information")
+                setError(
+                    err.message || "There was an issue loading the datasets."
+                )
             } finally {
                 setViewsLoaded(true)
             }

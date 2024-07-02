@@ -59,17 +59,32 @@ export const getNameFilesAndConfig = (
     return result.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function getParquetInfo(
-    dataset: string
-): Promise<ParquetResponse> {
+export async function getParquetInfo(dataset: string): Promise<{
+    data: ParquetResponse | null
+    statusCode: number
+    error?: string
+}> {
     const API_URL = `https://datasets-server.huggingface.co/parquet?dataset=${dataset}`
 
     try {
         const response = await axios.get<ParquetResponse>(API_URL)
-        return response.data
+        return {
+            data: response.data,
+            statusCode: response.status
+        }
     } catch (error) {
-        console.error("Error fetching parquet info:", error)
-        throw error
+        if (axios.isAxiosError(error)) {
+            return {
+                data: null,
+                statusCode: error.response?.status || 500,
+                error: error.message
+            }
+        }
+        return {
+            data: null,
+            statusCode: 500,
+            error: "An unexpected error occurred"
+        }
     }
 }
 
