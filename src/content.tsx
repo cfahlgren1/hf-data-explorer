@@ -91,9 +91,25 @@ const Explorer = ({ onClose }) => {
         null
     )
     const rowsRef = useRef<RowData[]>([])
-    const [loadViewsOnStartup] = useStorage("loadViewsOnStartup", (v) =>
-        v === undefined ? true : v
-    )
+    const [loadViewsOnStartup, setLoadViewsOnStartup] = useState(true)
+
+    // load views on startup from storage, in the case of context invalidation, just show views
+    useEffect(() => {
+        const loadStorageValue = async () => {
+            try {
+                const [loadViewsOnStartup] = useStorage(
+                    "loadViewsOnStartup",
+                    (v) => (v === undefined ? true : v)
+                )
+                setLoadViewsOnStartup(loadViewsOnStartup)
+            } catch (error) {
+                setLoadViewsOnStartup(true)
+            }
+        }
+
+        loadStorageValue()
+    }, [])
+
     const {
         views,
         viewsLoaded,
@@ -245,6 +261,23 @@ const Content = () => {
     const handleCloseExplorer = () => {
         setShowExplorer(false)
     }
+
+    useEffect(() => {
+        const handleError = (event) => {
+            event.preventDefault()
+
+            // ignore context invalidated errors, they are normal
+            if (!event.message.includes("Extension context invalidated.")) {
+                console.error(event.message)
+            }
+        }
+
+        window.addEventListener("error", handleError)
+
+        return () => {
+            window.removeEventListener("error", handleError)
+        }
+    }, [])
 
     if (showExplorer) {
         return <Explorer onClose={handleCloseExplorer} />
