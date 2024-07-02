@@ -10,6 +10,8 @@ import "ag-grid-community/styles/ag-grid.css"
 import "ag-grid-community/styles/ag-theme-balham.css"
 import "./styles.css"
 
+import { useStorage } from "@plasmohq/storage/hook"
+
 import Explorer from "./explorer"
 
 export const config: PlasmoCSConfig = {
@@ -24,6 +26,10 @@ export const getStyle = () => {
 
 const Content = () => {
     const [showExplorer, setShowExplorer] = useState(false)
+    const [loadViewsOnStartup, setLoadViewsOnStartup] = useStorage(
+        "loadViewsOnStartup",
+        (v) => (v === undefined ? true : v)
+    )
 
     useEffect(() => {
         const handleError = (event) => {
@@ -42,7 +48,12 @@ const Content = () => {
     }, [])
 
     if (showExplorer) {
-        return <Explorer onClose={() => setShowExplorer(false)} />
+        return (
+            <Explorer
+                onClose={() => setShowExplorer(false)}
+                loadViewsOnStartup={loadViewsOnStartup}
+            />
+        )
     }
 
     // show minimized explorer button if closed

@@ -2,10 +2,8 @@ import { DataGrid } from "@/components/data-grid"
 import QueryInput from "@/components/query-input"
 import { useDuckDB } from "@/hooks/useDuckDB"
 import { useParquetInfo } from "@/hooks/useParquetInfo"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import { FiX } from "react-icons/fi"
-
-import { useStorage } from "@plasmohq/storage/hook"
 
 interface RowData {
     [key: string]: any
@@ -18,9 +16,10 @@ interface ColumnDef {
 
 interface ExplorerProps {
     onClose: () => void
+    loadViewsOnStartup: boolean
 }
 
-const Explorer: React.FC<ExplorerProps> = ({ onClose }) => {
+const Explorer: React.FC<ExplorerProps> = ({ onClose, loadViewsOnStartup }) => {
     const [rows, setRows] = useState<RowData[]>([])
     const [columns, setColumns] = useState<ColumnDef[]>([])
     const [error, setError] = useState<string | null>(null)
@@ -31,25 +30,6 @@ const Explorer: React.FC<ExplorerProps> = ({ onClose }) => {
         null
     )
     const rowsRef = useRef<RowData[]>([])
-    const [loadViewsOnStartup, setLoadViewsOnStartup] = useState(true)
-
-    // load views on startup from storage, in the case of context invalidation, just show views
-    useEffect(() => {
-        const loadStorageValue = async () => {
-            try {
-                const [loadViewsOnStartup] = useStorage(
-                    "loadViewsOnStartup",
-                    (v) => (v === undefined ? true : v)
-                )
-                setLoadViewsOnStartup(loadViewsOnStartup)
-            } catch (error) {
-                setLoadViewsOnStartup(true)
-            }
-        }
-
-        loadStorageValue()
-    }, [])
-
     const {
         views,
         viewsLoaded,
