@@ -39,6 +39,9 @@ const IndexPopup = () => {
         const token = prompt("Enter your Hugging Face API token")
         if (token) {
             setApiToken(token)
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                chrome.tabs.reload()
+            })
         }
     }
 
