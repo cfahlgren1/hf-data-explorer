@@ -80,7 +80,7 @@ const useParquetInfo = (client, loading, loadViewsOnStartup) => {
     return { views, viewsLoaded, error }
 }
 
-const Explorer = () => {
+const Explorer = ({ onClose }) => {
     const [rows, setRows] = useState<RowData[]>([])
     const [columns, setColumns] = useState<ColumnDef[]>([])
     const [error, setError] = useState<string | null>(null)
@@ -101,11 +101,6 @@ const Explorer = () => {
     } = useParquetInfo(client, loading, loadViewsOnStartup)
 
     const [showViewsError, setShowViewsError] = useState(true)
-
-    // set default visibility to false and persist it to storage
-    const [showExplorer, setShowExplorer] = useStorage("showExplorer", (v) =>
-        v === undefined ? false : v
-    )
 
     const runQuery = useCallback(
         async (query: string) => {
@@ -200,7 +195,7 @@ const Explorer = () => {
                         Data Explorer
                     </h1>
                     <button
-                        onClick={() => setShowExplorer(false)}
+                        onClick={onClose}
                         className="text-slate-500 hover:text-slate-700"
                         aria-label="Close explorer">
                         <FiX size={20} />
@@ -241,22 +236,29 @@ const Explorer = () => {
 }
 
 const Content = () => {
-    const [showExplorer, setShowExplorer] = useStorage("showExplorer")
+    const [showExplorer, setShowExplorer] = useState(false)
 
-    // show minimized explorer button if closed
-    if (!showExplorer) {
-        return (
-            <button
-                onClick={() => setShowExplorer(true)}
-                className="fixed bottom-10 left-10 bg-slate-800 hover:text-yellow text-white rounded-full p-3 shadow-lg z-50 transition-transform duration-200 ease-in-out hover:scale-110"
-                aria-label="Open explorer">
-                <FiMaximize2 size={24} />
-            </button>
-        )
+    const handleOpenExplorer = () => {
+        setShowExplorer(true)
     }
 
-    // show explorer if opened
-    return <Explorer />
+    const handleCloseExplorer = () => {
+        setShowExplorer(false)
+    }
+
+    if (showExplorer) {
+        return <Explorer onClose={handleCloseExplorer} />
+    }
+
+    // show minimized explorer button if closed
+    return (
+        <button
+            onClick={handleOpenExplorer}
+            className="fixed bottom-10 left-10 bg-slate-800 hover:text-yellow text-white rounded-full p-3 shadow-lg z-50 transition-transform duration-200 ease-in-out hover:scale-110"
+            aria-label="Open explorer">
+            <FiMaximize2 size={24} />
+        </button>
+    )
 }
 
 export default Content
