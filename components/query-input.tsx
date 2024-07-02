@@ -86,6 +86,7 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                         onClick={onCancelQuery}
                         className="w-full"
                         disabled={isCancelling}>
+                        <ReloadIcon className="mr-2 h-4 w-4 animate-[spin_0.5s_linear_infinite]" />
                         {isCancelling ? "Cancelling..." : "Cancel Query"}
                     </Button>
                 ) : isLoading ? (
