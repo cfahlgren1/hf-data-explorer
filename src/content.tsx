@@ -91,7 +91,9 @@ const Explorer = () => {
         null
     )
     const rowsRef = useRef<RowData[]>([])
-    const [loadViewsOnStartup] = useStorage("loadViewsOnStartup")
+    const [loadViewsOnStartup] = useStorage("loadViewsOnStartup", (v) =>
+        v === undefined ? true : v
+    )
     const {
         views,
         viewsLoaded,

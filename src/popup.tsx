@@ -13,11 +13,8 @@ const DATASETS_URL = "https://huggingface.co/datasets"
 
 const IndexPopup = () => {
     const [currentUrl, setCurrentUrl] = useState<string | null>(null)
-
-    const [loadViewsOnStartup, setLoadViewsOnStartup] = useStorage(
-        "loadViewsOnStartup",
-        (v) => (v === undefined ? true : v)
-    )
+    const [loadViewsOnStartup, setLoadViewsOnStartup] =
+        useStorage("loadViewsOnStartup")
 
     useEffect(() => {
         getCurrentTabInfo()
