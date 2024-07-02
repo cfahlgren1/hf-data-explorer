@@ -38,7 +38,9 @@ export const useParquetInfo = (
                     )
                 }
                 if (apiError || !data) {
-                    throw new Error("There was an issue loading the datasets.")
+                    throw new Error(
+                        "The explorer is not available for this dataset."
+                    )
                 }
 
                 const views = getNameFilesAndConfig(data.parquet_files).reduce(
@@ -53,7 +55,8 @@ export const useParquetInfo = (
                 setViews(await client.getTables())
             } catch (err) {
                 setError(
-                    err.message || "There was an issue loading the datasets."
+                    err.message ||
+                        "The explorer is not available for this dataset."
                 )
             } finally {
                 setViewsLoaded(true)
