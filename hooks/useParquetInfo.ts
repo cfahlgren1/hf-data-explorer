@@ -8,6 +8,7 @@ import { useEffect, useState } from "react"
 
 export const useParquetInfo = (
     client: DuckDBClient | null,
+    apiToken: string | null,
     loading: boolean,
     loadViewsOnStartup: boolean
 ): { views: string[]; viewsLoaded: boolean; error: string | null } => {
@@ -28,7 +29,7 @@ export const useParquetInfo = (
                     data,
                     statusCode,
                     error: apiError
-                } = await getParquetInfo(dataset)
+                } = await getParquetInfo(dataset, apiToken)
 
                 // user hasn't set their API token
                 if (statusCode === 401) {

@@ -58,8 +58,10 @@ export const getNameFilesAndConfig = (
 
     return result.sort((a, b) => a.name.localeCompare(b.name))
 }
-
-export async function getParquetInfo(dataset: string): Promise<{
+export async function getParquetInfo(
+    dataset: string,
+    apiToken?: string
+): Promise<{
     data: ParquetResponse | null
     statusCode: number
     error?: string
@@ -67,7 +69,10 @@ export async function getParquetInfo(dataset: string): Promise<{
     const API_URL = `https://datasets-server.huggingface.co/parquet?dataset=${dataset}`
 
     try {
-        const response = await axios.get<ParquetResponse>(API_URL)
+        const config = apiToken
+            ? { headers: { Authorization: `Bearer ${apiToken}` } }
+            : {}
+        const response = await axios.get<ParquetResponse>(API_URL, config)
         return {
             data: response.data,
             statusCode: response.status

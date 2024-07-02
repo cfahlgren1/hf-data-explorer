@@ -5,6 +5,8 @@ import { useParquetInfo } from "@/hooks/useParquetInfo"
 import { useCallback, useMemo, useRef, useState } from "react"
 import { FiX } from "react-icons/fi"
 
+import { useStorage } from "@plasmohq/storage/hook"
+
 interface RowData {
     [key: string]: any
 }
@@ -30,13 +32,15 @@ const Explorer: React.FC<ExplorerProps> = ({ onClose, loadViewsOnStartup }) => {
         null
     )
     const rowsRef = useRef<RowData[]>([])
+
+    const [showViewsError, setShowViewsError] = useState(true)
+    const [apiToken, setApiToken] = useStorage("apiToken")
+
     const {
         views,
         viewsLoaded,
         error: viewsError
-    } = useParquetInfo(client, loading, loadViewsOnStartup)
-
-    const [showViewsError, setShowViewsError] = useState(true)
+    } = useParquetInfo(client, apiToken, loading, loadViewsOnStartup)
 
     const runQuery = useCallback(
         async (query: string) => {
