@@ -12,12 +12,13 @@ import agCSS from "data-text:ag-grid-community/styles/ag-grid.css"
 import agTheme from "data-text:ag-grid-community/styles/ag-theme-balham.css"
 import type { PlasmoCSConfig } from "plasmo"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-
-import { useStorage } from "@plasmohq/storage/hook"
+import { FiMaximize2, FiX } from "react-icons/fi"
 
 import "ag-grid-community/styles/ag-grid.css"
 import "ag-grid-community/styles/ag-theme-balham.css"
 import "./styles.css"
+
+import { useStorage } from "@plasmohq/storage/hook"
 
 export const config: PlasmoCSConfig = {
     matches: ["https://huggingface.co/datasets/*/*"]
@@ -98,6 +99,11 @@ const Explorer = () => {
     } = useParquetInfo(client, loading, loadViewsOnStartup)
 
     const [showViewsError, setShowViewsError] = useState(true)
+
+    // set default visibility to false and persist it to storage
+    const [showExplorer, setShowExplorer] = useStorage("showExplorer", (v) =>
+        v === undefined ? false : v
+    )
 
     const runQuery = useCallback(
         async (query: string) => {
@@ -187,9 +193,17 @@ const Explorer = () => {
     return (
         <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-[480px] rounded-lg shadow-lg z-50 flex flex-col max-h-[80vh]">
             <div className="p-4 flex-shrink-0">
-                <h1 className="text-xl font-bold text-slate-800 mb-2">
-                    Data Explorer
-                </h1>
+                <div className="flex justify-between items-center mb-2">
+                    <h1 className="text-xl font-bold text-slate-800">
+                        Data Explorer
+                    </h1>
+                    <button
+                        onClick={() => setShowExplorer(false)}
+                        className="text-slate-500 hover:text-slate-700"
+                        aria-label="Close explorer">
+                        <FiX size={20} />
+                    </button>
+                </div>
                 <p className="text-xs text-slate-600 mb-3">
                     Query datasets with SQL 🤗
                 </p>
@@ -225,8 +239,22 @@ const Explorer = () => {
 }
 
 const Content = () => {
-    const [showExplorer] = useStorage("showExplorer")
-    return showExplorer ? <Explorer /> : null
+    const [showExplorer, setShowExplorer] = useStorage("showExplorer")
+
+    // show minimized explorer button if closed
+    if (!showExplorer) {
+        return (
+            <button
+                onClick={() => setShowExplorer(true)}
+                className="fixed bottom-10 left-10 bg-slate-800 hover:text-yellow text-white rounded-full p-3 shadow-lg z-50 transition-transform duration-200 ease-in-out hover:scale-110"
+                aria-label="Open explorer">
+                <FiMaximize2 size={24} />
+            </button>
+        )
+    }
+
+    // show explorer if opened
+    return <Explorer />
 }
 
 export default Content

@@ -14,10 +14,6 @@ const DATASETS_URL = "https://huggingface.co/datasets"
 const IndexPopup = () => {
     const [currentUrl, setCurrentUrl] = useState<string | null>(null)
 
-    // set default visibility to false and persist it to storage
-    const [showExplorer, setShowExplorer] = useStorage("showExplorer", (v) =>
-        v === undefined ? false : v
-    )
     const [loadViewsOnStartup, setLoadViewsOnStartup] = useStorage(
         "loadViewsOnStartup",
         (v) => (v === undefined ? true : v)
@@ -54,27 +50,6 @@ const IndexPopup = () => {
                         <div className="space-y-6 mb-6">
                             <div className="flex items-start space-x-3">
                                 <Switch
-                                    id="data-explorer"
-                                    checked={showExplorer}
-                                    onCheckedChange={(checked) =>
-                                        setShowExplorer(checked)
-                                    }
-                                />
-                                <div>
-                                    <Label
-                                        htmlFor="data-explorer"
-                                        className="text-sm font-medium text-gray-800">
-                                        Show Explorer
-                                    </Label>
-                                    <p className="text-xs text-gray-500">
-                                        Show or hide the explorer interface on
-                                        dataset pages
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-start space-x-3">
-                                <Switch
                                     id="load-views"
                                     checked={loadViewsOnStartup}
                                     onCheckedChange={(checked) =>
@@ -88,8 +63,8 @@ const IndexPopup = () => {
                                         Load Views on Startup
                                     </Label>
                                     <p className="text-xs text-gray-500">
-                                        Automatically load dataset configs and
-                                        splits as views
+                                        Automatically load configs and splits as
+                                        views on startup
                                     </p>
                                 </div>
                             </div>
