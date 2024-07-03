@@ -16,6 +16,8 @@ const IndexPopup = () => {
     const [loadViewsOnStartup, setLoadViewsOnStartup] =
         useStorage("loadViewsOnStartup")
 
+    const [apiToken, setApiToken] = useStorage("apiToken")
+
     useEffect(() => {
         getCurrentTabInfo()
     }, [])
@@ -33,37 +35,66 @@ const IndexPopup = () => {
         }
     }
 
+    const handleSetApiToken = () => {
+        const token = prompt("Enter your Hugging Face API token")
+        if (token) {
+            setApiToken(token)
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                chrome.tabs.reload()
+            })
+        }
+    }
+
     return (
-        <div className="p-3 bg-white shadow-lg w-72 rounded-lg flex flex-col items-center justify-center">
+        <div className="p-3 bg-white shadow-lg w-80 rounded-lg flex flex-col items-center justify-center">
             <h1 className="text-3xl font-bold text-gray-800">Data Explorer</h1>
             <p>Explore Hugging Face datasets interactively.</p>
-            <div className="flex mt-10 flex-col space-y-2">
+            <div className="flex mt-10 flex-col space-y-4 w-full">
                 {currentUrl?.startsWith(DATASETS_URL) ? (
                     currentUrl === DATASETS_URL ? (
                         <p className="text-lg text-center">
                             Open a dataset to get started.
                         </p>
                     ) : (
-                        <div className="space-y-6 mb-6">
-                            <div className="flex items-start space-x-3">
-                                <Switch
-                                    id="load-views"
-                                    checked={loadViewsOnStartup}
-                                    onCheckedChange={(checked) =>
-                                        setLoadViewsOnStartup(checked)
-                                    }
-                                />
-                                <div>
-                                    <Label
-                                        htmlFor="load-views"
-                                        className="text-sm font-medium text-gray-800">
-                                        Load Views on Startup
-                                    </Label>
-                                    <p className="text-xs text-gray-500">
-                                        Automatically load configs and splits as
-                                        views on startup
-                                    </p>
+                        <div className="space-y-4 mb-6 w-full">
+                            <div className="bg-gray-100 p-4 rounded-lg shadow-sm">
+                                <div className="flex items-center space-x-3">
+                                    <Switch
+                                        id="load-views"
+                                        checked={loadViewsOnStartup}
+                                        onCheckedChange={(checked) =>
+                                            setLoadViewsOnStartup(checked)
+                                        }
+                                    />
+                                    <div>
+                                        <Label
+                                            htmlFor="load-views"
+                                            className="text-sm font-medium text-gray-800">
+                                            Load Datasets on Startup
+                                        </Label>
+                                        <p className="text-xs text-gray-500">
+                                            Automatically load configs and
+                                            splits as views on startup
+                                        </p>
+                                    </div>
                                 </div>
+                            </div>
+                            <div className="bg-gray-100 p-4 text-center rounded-lg shadow-sm">
+                                <Label className="text-sm font-medium text-gray-800">
+                                    Hugging Face API Token 🤗
+                                </Label>
+                                <p className="text-xs text-gray-500 mb-2">
+                                    Add your API token to access private
+                                    datasets.
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    className="w-full text-slate-800"
+                                    onClick={handleSetApiToken}>
+                                    {apiToken
+                                        ? "Update API Token"
+                                        : "Set API Token"}
+                                </Button>
                             </div>
                         </div>
                     )
