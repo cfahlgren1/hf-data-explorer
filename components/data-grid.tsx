@@ -1,3 +1,4 @@
+import { getCellRenderer } from "@/lib/utils"
 import type { ColDef, GridReadyEvent, IDatasource } from "ag-grid-community"
 import { AgGridReact } from "ag-grid-react"
 import React, { useCallback, useMemo, useRef, useState } from "react"
@@ -7,7 +8,10 @@ type RowData = Record<string, any>
 interface DataGridProps<T extends RowData> {
     initialData: {
         rows: T[]
-        columns: ColDef[]
+        columns: {
+            name: string
+            type: object
+        }[]
     }
     fetchNextBatch: () => Promise<{
         rows: T[]
@@ -51,6 +55,15 @@ export const DataGrid = React.memo(
             [datasource]
         )
 
+        // we set custom cell renderes if the column type matches
+        const columnDefs = initialData.columns.map((col) => {
+            const cellRenderer = getCellRenderer(col.type)
+            return {
+                ...col,
+                ...(cellRenderer && { cellRenderer })
+            }
+        }) as ColDef[]
+
         /*
     For small results, we want to use autoHeight to show smaller grid,
     but not for large results as it causes performance issues.
@@ -73,7 +86,7 @@ export const DataGrid = React.memo(
                     <AgGridReact
                         ref={gridRef}
                         domLayout={isSmallResult ? "autoHeight" : "normal"}
-                        columnDefs={initialData.columns}
+                        columnDefs={columnDefs}
                         defaultColDef={defaultColDef}
                         rowModelType="infinite"
                         maxConcurrentDatasourceRequests={1}

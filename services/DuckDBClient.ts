@@ -7,7 +7,6 @@ export interface DuckDBClientConfig {
 type SchemaField = {
     name: string
     type: string
-    databaseType: string
 }
 
 function sanitizeViewName(name: string): string {
@@ -119,11 +118,10 @@ export class DuckDBClient {
             const firstBatch = await resultSet.next()
             let schema: SchemaField[] = []
 
-            if (firstBatch && !firstBatch.done && firstBatch.value.schema) {
-                schema = firstBatch.value.schema.fields.map((field) => ({
-                    name: field.name,
-                    databaseType: String(field.type)
-                }))
+            if (firstBatch?.value?.schema) {
+                schema = firstBatch.value.schema.fields.map(
+                    ({ name, type }) => ({ name, type })
+                )
             }
 
             return {

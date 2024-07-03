@@ -23,7 +23,7 @@ interface ExplorerProps {
 
 const Explorer: React.FC<ExplorerProps> = ({ onClose, loadViewsOnStartup }) => {
     const [rows, setRows] = useState<RowData[]>([])
-    const [columns, setColumns] = useState<ColumnDef[]>([])
+    const [columns, setColumns] = useState([])
     const [error, setError] = useState<string | null>(null)
     const { client, loading } = useDuckDB()
     const [isStreaming, setIsStreaming] = useState<boolean>(false)
@@ -57,7 +57,8 @@ const Explorer: React.FC<ExplorerProps> = ({ onClose, loadViewsOnStartup }) => {
                 setColumns(
                     stream.schema.map((field) => ({
                         field: field.name,
-                        headerName: field.name
+                        headerName: field.name,
+                        type: field.type
                     }))
                 )
 
