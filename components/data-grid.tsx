@@ -67,9 +67,9 @@ export const DataGrid = React.memo(
         }, [])
 
         return (
-            <div>
+            <div className="flex-grow overflow-auto mt-4">
                 <div
-                    className={`ag-theme-balham ${!isSmallResult ? `h-96` : ""}`}>
+                    className={`ag-theme-balham ${!isSmallResult ? "h-64" : ""}`}>
                     <AgGridReact
                         ref={gridRef}
                         domLayout={isSmallResult ? "autoHeight" : "normal"}
@@ -79,6 +79,7 @@ export const DataGrid = React.memo(
                         maxConcurrentDatasourceRequests={1}
                         onGridReady={onGridReady}
                         cacheBlockSize={initialData.rows.length}
+                        className="overflow-auto"
                     />
                 </div>
                 <p className="text-xs text-center text-slate-600 mt-2">

@@ -1,6 +1,12 @@
+@import "codemirror/lib/codemirror.css";
+@import "codemirror/theme/lucario.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.CodeMirror {
+    height: 126px;
+}
 
 @layer base {
     :root {

@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import React, { useState } from "react"
-import type { KeyboardEvent } from "react"
+import { Controlled as CodeMirror } from "react-codemirror2"
+
+import "codemirror/mode/sql/sql"
 
 import CommandEnter from "./CommandEnter"
 import { Badge } from "./ui/badge"
@@ -27,14 +28,12 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
     }) => {
         const [query, setQuery] = useState<string>("")
 
-        // run query if user hits cmd + enter
-        const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault()
-                onRunQuery(query)
-            }
-        }
-
+        const handleChange = React.useCallback(
+            (editor: any, data: any, value: string) => {
+                setQuery(value)
+            },
+            []
+        )
         // helpful auto-fill for preview query
         const handleTableClick = (tableName: string) => {
             const newQuery = `SELECT * FROM ${tableName} LIMIT 500`
@@ -43,14 +42,25 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
 
         return (
             <>
-                <Textarea
+                <CodeMirror
                     value={query}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                        setQuery(e.target.value)
-                    }
-                    onKeyDown={handleKeyDown}
-                    placeholder="Enter your SQL query here..."
-                    className="w-full p-2 text-sm min-h-[120px] border border-slate-300 rounded resize-none mb-3"
+                    options={{
+                        mode: "sql",
+                        theme: "lucario",
+                        lineNumbers: true,
+                        extraKeys: {
+                            "Cmd-Enter": (cm: any) => {
+                                console.log("Cmd-Enter")
+                                onRunQuery(cm.getValue())
+                            },
+                            "Ctrl-Enter": (cm: any) => {
+                                console.log("Ctrl-Enter")
+                                onRunQuery(cm.getValue())
+                            }
+                        }
+                    }}
+                    onBeforeChange={handleChange}
+                    className="w-full max-h-32 text-sm resize-none overflow-auto mb-3"
                 />
                 {views.length > 0 && (
                     <div className="mb-4">
@@ -85,19 +95,21 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                     <Button
                         onClick={onCancelQuery}
                         className="w-full"
+                        variant="outline"
                         disabled={isCancelling}>
                         <ReloadIcon className="mr-2 h-4 w-4 animate-[spin_0.5s_linear_infinite]" />
                         {isCancelling ? "Cancelling..." : "Cancel Query"}
                     </Button>
                 ) : isLoading ? (
-                    <Button className="w-full" disabled>
+                    <Button className="w-full" variant="outline" disabled>
                         <ReloadIcon className="mr-2 h-4 w-4 animate-[spin_0.5s_linear_infinite]" />
                         Loading Datasets...
                     </Button>
                 ) : (
                     <Button
                         onClick={() => onRunQuery(query)}
-                        className="w-full">
+                        className="w-full"
+                        variant="outline">
                         Run Query
                         <CommandEnter />
                     </Button>
