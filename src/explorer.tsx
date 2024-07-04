@@ -117,58 +117,60 @@ const Explorer: React.FC<ExplorerProps> = ({ onClose, loadViewsOnStartup }) => {
     const memoizedDataGrid = useMemo(
         () =>
             rows.length > 0 && (
-                <div className="flex-grow overflow-auto p-4">
-                    <DataGrid
-                        initialData={{ rows: rowsRef.current, columns }}
-                        fetchNextBatch={fetchNextBatch}
-                    />
-                </div>
+                <DataGrid
+                    initialData={{ rows: rowsRef.current, columns }}
+                    fetchNextBatch={fetchNextBatch}
+                />
             ),
         [rows.length, columns, fetchNextBatch]
     )
 
     return (
         <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-[480px] rounded-lg shadow-lg z-50 flex flex-col max-h-[80vh]">
-            <div className="p-4 flex-shrink-0">
-                <div className="flex justify-between items-center mb-2">
-                    <h1 className="text-xl font-bold text-slate-800">
-                        Data Explorer
-                    </h1>
-                    <button
-                        onClick={onClose}
-                        className="text-slate-500 hover:text-slate-700"
-                        aria-label="Close explorer">
-                        <FiX size={20} />
-                    </button>
-                </div>
-                <p className="text-xs text-slate-600 mb-3">
-                    Query datasets with SQL 🤗
-                </p>
-                <QueryInput
-                    onRunQuery={runQuery}
-                    isCancelling={isCancelling}
-                    isLoading={loading || (loadViewsOnStartup && !viewsLoaded)}
-                    isRunning={isStreaming}
-                    views={views || []}
-                    onCancelQuery={handleCancelQuery}
-                />
-                {(error || (showViewsError && viewsError)) && (
-                    <p className="text-xs text-red-500 mt-2">
-                        {error || viewsError}
+            <div className="p-4 flex flex-col h-full overflow-auto">
+                <div className="flex-shrink-0">
+                    <div className="flex justify-between items-center mb-2">
+                        <h1 className="text-xl font-bold text-slate-800">
+                            Data Explorer
+                        </h1>
+                        <button
+                            onClick={onClose}
+                            className="text-slate-500 hover:text-slate-700"
+                            aria-label="Close explorer">
+                            <FiX size={20} />
+                        </button>
+                    </div>
+                    <p className="text-xs text-slate-600 mb-3">
+                        Query datasets with SQL 🤗
                     </p>
-                )}
-                {
-                    // Show a message if there are no views
-                    viewsLoaded &&
-                        !viewsError &&
-                        showViewsError &&
-                        views.length === 0 && (
-                            <p className="text-xs italic text-slate-600 mt-2">
-                                Sorry there wasn't a parquet conversion for this
-                                dataset.
-                            </p>
-                        )
-                }
+                    <QueryInput
+                        onRunQuery={runQuery}
+                        isCancelling={isCancelling}
+                        isLoading={
+                            loading || (loadViewsOnStartup && !viewsLoaded)
+                        }
+                        isRunning={isStreaming}
+                        views={views || []}
+                        onCancelQuery={handleCancelQuery}
+                    />
+                    {(error || (showViewsError && viewsError)) && (
+                        <p className="text-xs text-red-500 mt-2">
+                            {error || viewsError}
+                        </p>
+                    )}
+                    {
+                        // Show a message if there are no views
+                        viewsLoaded &&
+                            !viewsError &&
+                            showViewsError &&
+                            views.length === 0 && (
+                                <p className="text-xs italic text-slate-600 mt-2">
+                                    Sorry there wasn't a parquet conversion for
+                                    this dataset.
+                                </p>
+                            )
+                    }
+                </div>
                 {memoizedDataGrid}
             </div>
         </div>

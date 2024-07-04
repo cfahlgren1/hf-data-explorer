@@ -39,6 +39,7 @@
         "next-themes": "^0.3.0",
         "plasmo": "0.88.0",
         "react": "18.2.0",
+        "react-codemirror2": "^8.0.0",
         "react-dom": "18.2.0",
         "react-icons": "^5.2.1",
         "sonner": "^1.5.0",
