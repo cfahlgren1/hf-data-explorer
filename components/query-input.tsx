@@ -34,18 +34,6 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
             },
             []
         )
-
-        // run query if user hits cmd + enter
-        const handleKeyDown = (
-            editor: any,
-            name: string,
-            event: React.KeyboardEvent
-        ) => {
-            if (name === "Enter" && (event.metaKey || event.ctrlKey)) {
-                event.preventDefault()
-                onRunQuery(editor.getValue())
-            }
-        }
         // helpful auto-fill for preview query
         const handleTableClick = (tableName: string) => {
             const newQuery = `SELECT * FROM ${tableName} LIMIT 500`
@@ -59,9 +47,18 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                     options={{
                         mode: "sql",
                         theme: "lucario",
-                        lineNumbers: true
+                        lineNumbers: true,
+                        extraKeys: {
+                            "Cmd-Enter": (cm: any) => {
+                                console.log("Cmd-Enter")
+                                onRunQuery(cm.getValue())
+                            },
+                            "Ctrl-Enter": (cm: any) => {
+                                console.log("Ctrl-Enter")
+                                onRunQuery(cm.getValue())
+                            }
+                        }
                     }}
-                    onKeyHandled={handleKeyDown}
                     onBeforeChange={handleChange}
                     className="w-full max-h-32 text-sm resize-none overflow-auto mb-3"
                 />
