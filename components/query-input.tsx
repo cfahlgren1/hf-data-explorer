@@ -50,11 +50,9 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                         lineNumbers: true,
                         extraKeys: {
                             "Cmd-Enter": (cm: any) => {
-                                console.log("Cmd-Enter")
                                 onRunQuery(cm.getValue())
                             },
                             "Ctrl-Enter": (cm: any) => {
-                                console.log("Ctrl-Enter")
                                 onRunQuery(cm.getValue())
                             }
                         }
