@@ -61,27 +61,27 @@ describe("getNameFilesAndConfig", () => {
 
         // Check config-split combinations
         expect(result).toContainEqual({
-            name: "ParaphraseRC_test",
+            name: "ParaphraseRC/test",
             files: [mockParquetFiles[0]]
         })
         expect(result).toContainEqual({
-            name: "ParaphraseRC_train",
+            name: "ParaphraseRC/train",
             files: [mockParquetFiles[1]]
         })
         expect(result).toContainEqual({
-            name: "ParaphraseRC_validation",
+            name: "ParaphraseRC/validation",
             files: [mockParquetFiles[2]]
         })
         expect(result).toContainEqual({
-            name: "SelfRC_test",
+            name: "SelfRC/test",
             files: [mockParquetFiles[3]]
         })
         expect(result).toContainEqual({
-            name: "SelfRC_train",
+            name: "SelfRC/train",
             files: [mockParquetFiles[4]]
         })
         expect(result).toContainEqual({
-            name: "SelfRC_validation",
+            name: "SelfRC/validation",
             files: [mockParquetFiles[5]]
         })
 
@@ -105,13 +105,13 @@ describe("getNameFilesAndConfig", () => {
 
         // Check sorting
         expect(result[0].name).toBe("ParaphraseRC")
-        expect(result[1].name).toBe("ParaphraseRC_test")
-        expect(result[2].name).toBe("ParaphraseRC_train")
-        expect(result[3].name).toBe("ParaphraseRC_validation")
+        expect(result[1].name).toBe("ParaphraseRC/test")
+        expect(result[2].name).toBe("ParaphraseRC/train")
+        expect(result[3].name).toBe("ParaphraseRC/validation")
         expect(result[4].name).toBe("SelfRC")
-        expect(result[5].name).toBe("SelfRC_test")
-        expect(result[6].name).toBe("SelfRC_train")
-        expect(result[7].name).toBe("SelfRC_validation")
+        expect(result[5].name).toBe("SelfRC/test")
+        expect(result[6].name).toBe("SelfRC/train")
+        expect(result[7].name).toBe("SelfRC/validation")
     })
 
     it("should handle empty input", () => {
