@@ -69,13 +69,15 @@ export const DataGrid = React.memo(
         return (
             <div className="flex-grow overflow-auto mt-4">
                 <div
-                    className={`ag-theme-balham ${!isSmallResult ? "h-64" : ""}`}>
+                    className={`ag-theme-quartz ${!isSmallResult ? "h-80" : ""}`}>
                     <AgGridReact
                         ref={gridRef}
                         domLayout={isSmallResult ? "autoHeight" : "normal"}
                         columnDefs={initialData.columns}
                         defaultColDef={defaultColDef}
                         rowModelType="infinite"
+                        enableCellTextSelection={true}
+                        ensureDomOrder={true}
                         maxConcurrentDatasourceRequests={1}
                         onGridReady={onGridReady}
                         cacheBlockSize={initialData.rows.length}

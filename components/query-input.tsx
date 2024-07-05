@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import type { ParquetInfo } from "@/types/parquet"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import React, { useState } from "react"
 import { Controlled as CodeMirror } from "react-codemirror2"
@@ -14,7 +15,7 @@ interface QueryInputProps {
     isLoading: boolean
     onCancelQuery: () => void
     isCancelling: boolean
-    views: string[]
+    views: ParquetInfo[]
 }
 
 const QueryInput: React.FC<QueryInputProps> = React.memo(
@@ -78,11 +79,13 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                             <div className="flex gap-1">
                                 {views.map((view) => (
                                     <Badge
-                                        key={view}
+                                        key={view.view_name}
                                         variant="secondary"
                                         className="text-xs cursor-pointer whitespace-nowrap"
-                                        onClick={() => handleTableClick(view)}>
-                                        {view}
+                                        onClick={() =>
+                                            handleTableClick(view.view_name)
+                                        }>
+                                        {view.name}
                                     </Badge>
                                 ))}
                             </div>

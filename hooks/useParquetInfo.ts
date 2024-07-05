@@ -4,6 +4,7 @@ import {
     getParquetInfo
 } from "@/lib/datasets"
 import type { DuckDBClient } from "@/services/DuckDBClient"
+import type { ParquetInfo } from "@/types/parquet"
 import { useEffect, useState } from "react"
 
 export const useParquetInfo = (
@@ -11,8 +12,8 @@ export const useParquetInfo = (
     apiToken: string | null,
     loading: boolean,
     loadViewsOnStartup: boolean
-): { views: string[]; viewsLoaded: boolean; error: string | null } => {
-    const [views, setViews] = useState<string[]>([])
+): { views: ParquetInfo[]; viewsLoaded: boolean; error: string | null } => {
+    const [views, setViews] = useState<ParquetInfo[]>([])
     const [viewsLoaded, setViewsLoaded] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
 
@@ -51,8 +52,8 @@ export const useParquetInfo = (
                     {}
                 )
 
-                await client.loadConfig({ views })
-                setViews(await client.getTables())
+                const viewInfo = await client.loadConfig({ views })
+                setViews(viewInfo)
             } catch (err) {
                 setError(
                     err.message ||

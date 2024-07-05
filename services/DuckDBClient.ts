@@ -1,3 +1,4 @@
+import type { ParquetInfo } from "@/types/parquet"
 import * as duckdb from "@duckdb/duckdb-wasm"
 
 export interface DuckDBClientConfig {
@@ -56,10 +57,12 @@ export class DuckDBClient {
         return this.currentConnection
     }
 
-    async loadConfig(config: DuckDBClientConfig): Promise<void> {
+    async loadConfig(config: DuckDBClientConfig): Promise<ParquetInfo[]> {
         if (!this.db) {
             throw new Error("Database not initialized")
         }
+
+        const viewInfo: ParquetInfo[] = []
 
         if (config.views) {
             const connection = await this.getConnection()
@@ -88,12 +91,31 @@ export class DuckDBClient {
                     await connection.query(
                         `CREATE OR REPLACE VIEW ${sanitizedViewName} AS SELECT * FROM read_parquet([${filePathsString}]);`
                     )
+
+                    // Get schema information using PRAGMA table_info
+                    const schemaResult = await connection.query(
+                        `PRAGMA table_info(${sanitizedViewName});`
+                    )
+                    const schema = schemaResult.toArray().map((row) => ({
+                        name: row.name,
+                        type: row.type,
+                        notnull: row.notnull,
+                        dflt_value: row.dflt_value,
+                        pk: row.pk
+                    }))
+
+                    viewInfo.push({
+                        name: viewName,
+                        view_name: sanitizedViewName,
+                        schema: schema
+                    })
                 }
             } finally {
                 await connection.close()
                 this.currentConnection = null
             }
         }
+        return viewInfo
     }
 
     async queryStream(query: string, params?: any[]) {

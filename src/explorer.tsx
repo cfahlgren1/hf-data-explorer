@@ -2,7 +2,7 @@ import { DataGrid } from "@/components/data-grid"
 import QueryInput from "@/components/query-input"
 import { useDuckDB } from "@/hooks/useDuckDB"
 import { useParquetInfo } from "@/hooks/useParquetInfo"
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { FiX } from "react-icons/fi"
 
 import { useStorage } from "@plasmohq/storage/hook"
@@ -41,6 +41,36 @@ const Explorer: React.FC<ExplorerProps> = ({ onClose, loadViewsOnStartup }) => {
         viewsLoaded,
         error: viewsError
     } = useParquetInfo(client, apiToken, loading, loadViewsOnStartup)
+
+    const [width, setWidth] = useState(480)
+    const [isDragging, setIsDragging] = useState(false)
+
+    const handleMouseDown = useCallback(() => {
+        setIsDragging(true)
+    }, [])
+
+    const handleMouseUp = useCallback(() => {
+        setIsDragging(false)
+    }, [])
+
+    const handleMouseMove = useCallback(
+        (e: MouseEvent) => {
+            if (isDragging) {
+                const newWidth = e.clientX - 40 // 40px offset for left margin
+                setWidth(Math.max(384, newWidth)) // Min width: 384px (md)
+            }
+        },
+        [isDragging]
+    )
+
+    useEffect(() => {
+        document.addEventListener("mousemove", handleMouseMove)
+        document.addEventListener("mouseup", handleMouseUp)
+        return () => {
+            document.removeEventListener("mousemove", handleMouseMove)
+            document.removeEventListener("mouseup", handleMouseUp)
+        }
+    }, [handleMouseMove, handleMouseUp])
 
     const runQuery = useCallback(
         async (query: string) => {
@@ -126,7 +156,9 @@ const Explorer: React.FC<ExplorerProps> = ({ onClose, loadViewsOnStartup }) => {
     )
 
     return (
-        <div className="bg-white border border-slate-200 fixed bottom-10 left-10 w-[480px] rounded-lg shadow-lg z-50 flex flex-col max-h-[80vh]">
+        <div
+            className="bg-white border border-slate-200 fixed bottom-10 left-10 rounded-lg shadow-lg z-50 flex flex-col max-h-[80vh]"
+            style={{ width: `${width}px` }}>
             <div className="p-4 flex flex-col h-full overflow-auto">
                 <div className="flex-shrink-0">
                     <div className="flex justify-between items-center mb-2">
@@ -173,6 +205,9 @@ const Explorer: React.FC<ExplorerProps> = ({ onClose, loadViewsOnStartup }) => {
                 </div>
                 {memoizedDataGrid}
             </div>
+            <div
+                className="absolute top-0 right-0 w-1 h-full cursor-ew-resize bg-slate-100 hover:bg-slate-200"
+                onMouseDown={handleMouseDown}></div>
         </div>
     )
 }

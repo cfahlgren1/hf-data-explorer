@@ -32,7 +32,7 @@ export const getNameFilesAndConfig = (
     const configMap: Record<string, ParquetFile[]> = {}
 
     parquetFiles.forEach((file) => {
-        const configSplitName = `${file.config}_${file.split}`
+        const configSplitName = `${file.config}/${file.split}`
         const configName = file.config
 
         // Add to config-split combination
