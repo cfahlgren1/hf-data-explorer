@@ -1,13 +1,13 @@
 // CSS imports
 import cssText from "data-text:~/styles.css"
 import agCSS from "data-text:ag-grid-community/styles/ag-grid.css"
-import agTheme from "data-text:ag-grid-community/styles/ag-theme-balham.css"
+import agTheme from "data-text:ag-grid-community/styles/ag-theme-quartz.css"
 import type { PlasmoCSConfig } from "plasmo"
 import React, { useEffect, useState } from "react"
 import { FiMaximize2 } from "react-icons/fi"
 
 import "ag-grid-community/styles/ag-grid.css"
-import "ag-grid-community/styles/ag-theme-balham.css"
+import "ag-grid-community/styles/ag-theme-quartz.css"
 import "./styles.css"
 
 import { useStorage } from "@plasmohq/storage/hook"
