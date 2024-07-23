@@ -41,6 +41,18 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
             setQuery(newQuery)
         }
 
+        // allow horizontal scrolling with mouse
+        const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
+            const container = event.currentTarget
+            const scrollAmount = event.deltaY
+
+            requestAnimationFrame(() => {
+                container.scrollLeft += scrollAmount
+            })
+
+            event.preventDefault()
+        }
+
         return (
             <>
                 <CodeMirror
@@ -67,21 +79,23 @@ const QueryInput: React.FC<QueryInputProps> = React.memo(
                             Tables
                         </label>
                         <div
-                            className="overflow-x-scroll pb-2"
+                            className="overflow-x-auto pb-2"
+                            onWheel={handleWheel}
                             style={{
                                 scrollbarWidth: "none",
                                 msOverflowStyle: "none",
+                                WebkitOverflowScrolling: "touch",
                                 maskImage:
                                     "linear-gradient(to right, transparent, black 8px, black calc(100% - 8px), transparent)",
                                 WebkitMaskImage:
                                     "linear-gradient(to right, transparent, black 8px, black calc(100% - 8px), transparent)"
                             }}>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 pb-2 whitespace-nowrap">
                                 {views.map((view) => (
                                     <Badge
                                         key={view.view_name}
                                         variant="secondary"
-                                        className="text-xs cursor-pointer whitespace-nowrap"
+                                        className="text-xs cursor-pointer"
                                         onClick={() =>
                                             handleTableClick(view.view_name)
                                         }>
