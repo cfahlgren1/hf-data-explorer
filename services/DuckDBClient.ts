@@ -14,6 +14,12 @@ type SchemaField = {
 function sanitizeViewName(name: string): string {
     // Replace invalid characters with underscores
     let sanitized = name.replace(/[^a-zA-Z0-9_]/g, "_")
+
+    // Add 'v_' prefix if the name starts with a number
+    if (/^\d/.test(sanitized)) {
+        sanitized = "v_" + sanitized
+    }
+
     sanitized = sanitized.toLowerCase()
 
     return sanitized
@@ -28,8 +34,20 @@ export class DuckDBClient {
 
     constructor(private config: DuckDBClientConfig) {}
 
-    async initialize(): Promise<void> {
-        const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles()
+    async initialize(tag: "latest" | "next" = "latest"): Promise<void> {
+        const CDN_BASE = `https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@${tag}`
+
+        const JSDELIVR_BUNDLES = {
+            mvp: {
+                mainModule: `${CDN_BASE}/dist/duckdb-mvp.wasm`,
+                mainWorker: `${CDN_BASE}/dist/duckdb-browser-mvp.worker.js`
+            },
+            eh: {
+                mainModule: `${CDN_BASE}/dist/duckdb-eh.wasm`,
+                mainWorker: `${CDN_BASE}/dist/duckdb-browser-eh.worker.js`
+            }
+        }
+
         const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES)
 
         const worker_url = URL.createObjectURL(

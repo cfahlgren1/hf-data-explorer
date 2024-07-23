@@ -23,7 +23,7 @@ const useDuckDB = (config: DuckDBClientConfig = {}) => {
 
             try {
                 const newClient = new DuckDBClient(config)
-                await newClient.initialize()
+                await newClient.initialize("next")
                 if (isMounted) {
                     setClient(newClient)
                     setLoading(false)
