@@ -1,4 +1,6 @@
-# HF Data Explorer
+# HF Data Explorer (Archived)
+
+**This feature has been archived since it is available natively in Hugging Face now. You can learn more about it [here](https://huggingface.co/blog/sql-console).**
 
 A Chrome Extension for exploring and query Hugging Face datasets with SQL.
 
